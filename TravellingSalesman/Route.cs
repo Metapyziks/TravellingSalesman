@@ -43,6 +43,20 @@ namespace TravellingSalesman
             }
         }
 
+        public int this[ int index ]
+        {
+            get
+            {
+                while ( index < 0 )
+                    index += _count;
+
+                while ( index >= _count )
+                    index -= _count;
+
+                return _indices[ index ];
+            }
+        }
+
         public Route( Graph graph, int[] indices )
         {
             Graph = graph;
@@ -64,6 +78,7 @@ namespace TravellingSalesman
                 _indices[ i ] = _indices[ i - 1 ];
 
             _indices[ index ] = vIndex;
+            ++_count;
             _length = -1;
         }
 
@@ -94,15 +109,26 @@ namespace TravellingSalesman
 
         public override string ToString()
         {
+            return ToString( false );
+        }
+
+        public string ToString( bool includePath )
+        {
             StringBuilder builder = new StringBuilder();
             builder.AppendFormat( "NAME = {0},\r\n", Graph.Name );
             builder.AppendFormat( "TOURSIZE = {0},\r\n", Count );
-            builder.AppendFormat( "LENGTH = {0},\r\n", Length );
-            for ( int i = 0; i < _count; ++i )
+            builder.AppendFormat( "LENGTH = {0},", Length );
+
+            if ( includePath )
             {
-                builder.Append( _indices[ i ] + 1 );
-                builder.Append( ',' );
+                builder.Append( "\r\n" );
+                for ( int i = 0; i < _count; ++i )
+                {
+                    builder.Append( _indices[ i ] + 1 );
+                    builder.Append( ',' );
+                }
             }
+
             return builder.ToString( 0, builder.Length - 1 );
         }
     }

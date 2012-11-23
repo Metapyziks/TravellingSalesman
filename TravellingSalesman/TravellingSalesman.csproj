@@ -41,10 +41,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConstructiveSearcher.cs" />
     <Compile Include="Graph.cs" />
+    <Compile Include="HillClimbSearcher.cs" />
+    <Compile Include="ReversingSearcher.cs" />
     <Compile Include="Route.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ISearcher.cs" />
+    <Compile Include="TestConstrSearcher.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
