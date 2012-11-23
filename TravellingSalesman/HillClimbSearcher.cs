@@ -19,7 +19,7 @@ namespace TravellingSalesman
         {
             if ( printProgress )
             {
-                Console.WriteLine( "# Starting hill climb with route of length {0}", route.Length );
+                Console.WriteLine( "# Starting a new {0} with route of length {1}", GetType().Name, route.Length );
                 Console.Write( "Current best: {0}", route.Length );
             }
 

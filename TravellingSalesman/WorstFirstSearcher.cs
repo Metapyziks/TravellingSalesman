@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace TravellingSalesman
 {
-    class TestConstrSearcher : ConstructiveSearcher
+    class WorstFirstSearcher : ConstructiveSearcher
     {
         private int _lastIndex;
 
-        public TestConstrSearcher( HillClimbSearcher improver = null )
+        public WorstFirstSearcher( HillClimbSearcher improver = null )
             : base( improver ) { }
 
         protected override int ChooseNext( Route route )

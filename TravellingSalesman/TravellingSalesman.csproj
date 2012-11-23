@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BestFirstSearcher.cs" />
     <Compile Include="ConstructiveSearcher.cs" />
     <Compile Include="Graph.cs" />
     <Compile Include="HillClimbSearcher.cs" />
@@ -51,7 +52,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReversingSearcher.cs" />
     <Compile Include="Route.cs" />
-    <Compile Include="TestConstrSearcher.cs" />
+    <Compile Include="WorstFirstSearcher.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

@@ -362,7 +362,7 @@ else:
                             tour_length = tc(filepath,eachtour)[0]
 
                             if tour_length != 0:
-                                if not persons_tour.has_key(city_file):
+                                if not city_file in persons_tour:
                                     persons_tour[city_file] = tour_length
                                 else:
                                     if persons_tour[city_file] > tour_length:
@@ -371,7 +371,7 @@ else:
 
                 for city_file in cityfilelist:
                     if city_file in persons_tour:
-                        if not best_tour.has_key(city_file):
+                        if not city_file in best_tour:
                             best_tour[city_file] = persons_tour[city_file]
                             best_person[city_file] = [currentdir]
                         else:

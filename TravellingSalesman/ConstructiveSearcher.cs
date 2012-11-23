@@ -23,10 +23,10 @@ namespace TravellingSalesman
 
             if ( printProgress )
             {
-                Console.WriteLine( "# Starting a new constructive search" );
+                Console.WriteLine( "# Starting a new {0} search", GetType().Name );
                 if ( _improver != null )
-                    Console.WriteLine( "Search will use a hillclimb to "
-                    + "improve each iteration" );
+                    Console.WriteLine( "Search will use {0} to "
+                    + "improve each iteration", _improver.GetType().Name );
                 Console.Write( "Progress: 0/{0} - 0", graph.Size );
             }
 

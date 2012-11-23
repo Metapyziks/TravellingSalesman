@@ -21,10 +21,11 @@ namespace TravellingSalesman
 
 #if DEBUG
             SearchSingle( args.Length > 0 ? args[0]
-                : "cityfiles" + DSC + "SAtestcase.txt", outdir );
+                : "cityfiles" + DSC + "SAtestcase.txt", outDir );
             Console.ReadKey();
 #else
             SearchDirectory( args.Length > 0 ? args[0] : "cityfiles", outDir );
+            Console.ReadKey();
 #endif
         }
 
@@ -35,19 +36,53 @@ namespace TravellingSalesman
             Console.WriteLine( "Graph loaded: {0} has {1} vertices", graph.Name, graph.Size );
 
             ISearcher searcher;
-            Route route;
             Stopwatch stopwatch = new Stopwatch();
+#if DEBUG
+            Route route;
 
-            searcher = new TestConstrSearcher( new ReversingSearcher() );
-            stopwatch.Start();
+            searcher = new WorstFirstSearcher();
+            stopwatch.Restart();
             route = searcher.Search( graph, true );
             stopwatch.Stop();
-            
             Console.WriteLine( "Search time: {0}ms", stopwatch.ElapsedMilliseconds );
             Console.WriteLine( route.ToString() );
 
-            if( outDir != null )
-                File.WriteAllText( outDir + DSC + "tour" + graph.Name + ".txt", route.ToString( true ) );
+            searcher = new BestFirstSearcher();
+            stopwatch.Start();
+            route = searcher.Search( graph, true );
+            stopwatch.Restart();
+            Console.WriteLine( "Search time: {0}ms", stopwatch.ElapsedMilliseconds );
+            Console.WriteLine( route.ToString() );
+#endif
+            searcher = new WorstFirstSearcher( new ReversingSearcher() );
+            stopwatch.Restart();
+            Route wfs = searcher.Search( graph, true );
+            stopwatch.Stop();
+            Console.WriteLine( "Search time: {0}ms", stopwatch.ElapsedMilliseconds );
+            Console.WriteLine( wfs.ToString() );
+
+            searcher = new BestFirstSearcher( new ReversingSearcher() );
+            stopwatch.Restart();
+            Route bfs = searcher.Search( graph, true );
+            stopwatch.Stop();
+            Console.WriteLine( "Search time: {0}ms", stopwatch.ElapsedMilliseconds );
+            Console.WriteLine( bfs.ToString() );
+
+            if ( wfs.Length < bfs.Length )
+            {
+                Console.WriteLine( "WorstFirstSearcher was better!" );
+
+                if ( outDir != null )
+                    File.WriteAllText( outDir + DSC + "tour" + graph.Name + ".txt", wfs.ToString( true ) );
+            }
+
+            if ( bfs.Length <= wfs.Length )
+            {
+                Console.WriteLine( "BestFirstSearcher was better!" );
+
+                if ( outDir != null )
+                    File.WriteAllText( outDir + DSC + "tour" + graph.Name + ".txt", bfs.ToString( true ) );
+            }
         }
 
         static void SearchDirectory( String directory, String outDir = null )
