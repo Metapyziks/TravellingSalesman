@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TravellingSalesman
 {
-    class ReversingSearcher : HillClimbSearcher
+    public class ReversingSearcher : HillClimbSearcher
     {
         protected override bool Iterate( Route route )
         {

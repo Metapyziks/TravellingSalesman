@@ -4,7 +4,7 @@ using System.IO;
 
 namespace TravellingSalesman
 {
-    class Graph
+    public class Graph
     {
         public static Graph FromFile( String path )
         {
@@ -37,13 +37,13 @@ namespace TravellingSalesman
         }
 
         public readonly String Name;
-        public readonly int Size;
+        public readonly int Count;
 
         private int[,] _weights;
 
-        public int this[ int a, int b ]
+        public int this[int a, int b]
         {
-            get { return _weights[ a, b ]; }
+            get { return _weights[a, b]; }
         }
 
         public Graph( String data )
@@ -51,7 +51,7 @@ namespace TravellingSalesman
             int index = 0;
 
             String str;
-            while( _IsKeyVal( str = _ReadNext( data, ref index ) ) )
+            while ( _IsKeyVal( str = _ReadNext( data, ref index ) ) )
             {
                 KeyValuePair<String, String> keyVal = _ParseKeyVal( str );
                 switch ( keyVal.Key )
@@ -59,20 +59,20 @@ namespace TravellingSalesman
                     case "NAME":
                         Name = keyVal.Value; break;
                     case "SIZE":
-                        Size = Int32.Parse( keyVal.Value ); break;
+                        Count = Int32.Parse( keyVal.Value ); break;
                 }
             }
 
-            if ( Size <= 0 )
+            if ( Count <= 0 )
                 throw new Exception( "Invalid graph size given" );
 
-            _weights = new int[ Size, Size ];
+            _weights = new int[Count, Count];
 
-            for ( int i = 0; i < Size; ++i )
+            for ( int i = 0; i < Count; ++i )
             {
-                for ( int j = i + 1; j < Size; ++j )
+                for ( int j = i + 1; j < Count; ++j )
                 {
-                    _weights[ i, j ] = _weights[ j, i ] = Int32.Parse( str );
+                    _weights[i, j] = _weights[j, i] = Int32.Parse( str );
 
                     if ( index >= data.Length )
                         break;

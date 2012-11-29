@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TravellingSalesman
 {
-    interface ISearcher
+    public interface ISearcher
     {
         Route Search( Graph graph, bool printProgress = false );
     }

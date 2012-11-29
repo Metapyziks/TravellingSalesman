@@ -6,13 +6,29 @@ using System.Threading.Tasks;
 
 namespace TravellingSalesman
 {
-    class Route
+    public class Route
     {
+        private class NextComparer : IComparer<int>
+        {
+            private readonly Route _route;
+
+            public NextComparer( Route route )
+            {
+                _route = route;
+            }
+
+            public int Compare( int x, int y )
+            {
+                int last = _route[_route.Count - 1];
+                return _route.Graph[last, x] - _route.Graph[last, y];
+            }
+        }
+
         public static Route CreateDefault( Graph graph )
         {
-            int[] indices = new int[ graph.Size ];
-            for ( int i = 0; i < graph.Size; ++i )
-                indices[ i ] = i;
+            int[] indices = new int[graph.Count];
+            for ( int i = 0; i < graph.Count; ++i )
+                indices[i] = i;
 
             return new Route( graph, indices );
         }
@@ -21,7 +37,10 @@ namespace TravellingSalesman
 
         private int _count;
         private int _length;
+        private bool[] _added;
         private int[] _indices;
+
+        private IComparer<int> _nextComparer;
 
         public int Count
         {
@@ -36,14 +55,14 @@ namespace TravellingSalesman
                 {
                     _length = 0;
                     for ( int i = 0; i < Count; ++i )
-                        _length += Graph[ _indices[ i ], _indices[ ( i + 1 ) % Graph.Size ] ];
+                        _length += Graph[_indices[i], _indices[( i + 1 ) % Graph.Count]];
                 }
-                
+
                 return _length;
             }
         }
 
-        public int this[ int index ]
+        public int this[int index]
         {
             get
             {
@@ -53,7 +72,7 @@ namespace TravellingSalesman
                 while ( index >= _count )
                     index -= _count;
 
-                return _indices[ index ];
+                return _indices[index];
             }
         }
 
@@ -61,23 +80,39 @@ namespace TravellingSalesman
         {
             Graph = graph;
 
-            _indices = new int[ graph.Size ];
-            _count = indices.Length;
+            _indices = new int[graph.Count];
+            _added = new bool[graph.Count];
             _length = -1;
 
-            for ( int i = 0; i < _count; ++i )
-                _indices[ i ] = indices[ i ];
+            _nextComparer = new NextComparer( this );
+
+            for ( int i = 0; i < graph.Count; ++i )
+                _indices[i] = i;
+
+            for ( int i = 0; i < indices.Length; ++i )
+                AddEnd( indices[i] );
+        }
+
+        public int GetFromSelectionBuffer( int index )
+        {
+            return _indices[index];
         }
 
         public void Insert( int vIndex, int index )
         {
-            if ( _count >= Graph.Size )
+            if ( _count >= Graph.Count )
                 throw new Exception( "Route is at maximum capacity" );
 
-            for ( int i = _count; i > index; --i )
-                _indices[ i ] = _indices[ i - 1 ];
+            int val = _indices[vIndex];
+            _added[val] = true;
 
-            _indices[ index ] = vIndex;
+            _indices[vIndex] = _indices[_count];
+
+            for ( int i = _count; i > index; --i )
+                _indices[i] = _indices[i - 1];
+
+            _indices[index] = val;
+
             ++_count;
             _length = -1;
         }
@@ -92,16 +127,32 @@ namespace TravellingSalesman
             Insert( vIndex, 0 );
         }
 
+        public bool IsAdded( int vIndex )
+        {
+            return _added[vIndex];
+        }
+
+        public int SelectNextBest( int k = 0 )
+        {
+            if ( Count == 0 )
+                return k;
+
+            return _indices.SelectStatisticIndex( k, Count, Graph.Count - Count, _nextComparer );
+        }
+
+        public void Reverse()
+        {
+            Reverse( 0, Count );
+        }
+
         public void Reverse( int start, int count )
         {
             int mid = count / 2;
-            for( int i = 0; i < mid; ++ i )
+            for ( int i = 0; i < mid; ++i )
             {
                 int indA = ( start + i ) % _count;
                 int indB = ( start + count - i - 1 ) % _count;
-                _indices[ indA ] ^= _indices[ indB ];
-                _indices[ indB ] ^= _indices[ indA ];
-                _indices[ indA ] ^= _indices[ indB ];
+                _indices.Swap( indA, indB );
             }
 
             _length = -1;
@@ -124,12 +175,31 @@ namespace TravellingSalesman
                 builder.Append( "\r\n" );
                 for ( int i = 0; i < _count; ++i )
                 {
-                    builder.Append( _indices[ i ] + 1 );
+                    builder.Append( _indices[i] + 1 );
                     builder.Append( ',' );
                 }
             }
 
             return builder.ToString( 0, builder.Length - 1 );
+        }
+
+        public override bool Equals( object obj )
+        {
+            if ( obj is Route )
+            {
+                Route route = (Route) obj;
+
+                if ( route.Count != Count )
+                    return false;
+
+                for ( int i = 0; i < Count; ++i )
+                    if ( this[i] != route[i] )
+                        return false;
+
+                return true;
+            }
+
+            return false;
         }
     }
 }

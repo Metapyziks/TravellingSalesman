@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TravellingSalesman
 {
-    abstract class HillClimbSearcher : ISearcher
+    public abstract class HillClimbSearcher : ISearcher
     {
         public Route Search( Graph graph, bool printProgress = false )
         {

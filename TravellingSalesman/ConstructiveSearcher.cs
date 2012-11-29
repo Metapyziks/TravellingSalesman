@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace TravellingSalesman
 {
-    abstract class ConstructiveSearcher : ISearcher
+    public abstract class ConstructiveSearcher : ISearcher
     {
         private HillClimbSearcher _improver;
-        private bool[] _added;
 
         public ConstructiveSearcher( HillClimbSearcher improver = null )
         {
@@ -18,8 +17,7 @@ namespace TravellingSalesman
 
         public Route Search( Graph graph, bool printProgress = false )
         {
-            Route route = new Route( graph, new int[ 0 ] );
-            _added = new bool[ graph.Size ];
+            Route route = new Route( graph, new int[0] );
 
             if ( printProgress )
             {
@@ -27,21 +25,20 @@ namespace TravellingSalesman
                 if ( _improver != null )
                     Console.WriteLine( "Search will use {0} to "
                     + "improve each iteration", _improver.GetType().Name );
-                Console.Write( "Progress: 0/{0} - 0", graph.Size );
+                Console.Write( "Progress: 0/{0} - 0", graph.Count );
             }
 
             int lastCount = route.Count;
-            while ( route.Count < graph.Size )
+            while ( route.Count < graph.Count )
             {
                 int vIndex = ChooseNext( route );
                 route.Insert( vIndex, ChooseIndex( route, vIndex ) );
-                _added[ vIndex ] = true;
 
                 if ( printProgress )
                 {
                     Console.CursorLeft = 10;
                     Console.Write( "{0}/{1} - {2}",
-                        route.Count, graph.Size, route.Length );
+                        route.Count, graph.Count, route.Length );
                 }
 
                 lastCount = route.Count;
@@ -54,11 +51,6 @@ namespace TravellingSalesman
                 Console.WriteLine( "\nConstructive search complete" );
 
             return route;
-        }
-
-        protected bool IsAdded( int vIndex )
-        {
-            return _added[ vIndex ];
         }
 
         protected abstract int ChooseNext( Route route );

@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace TravellingSalesman
 {
-    class Program
+    public class Program
     {
         private static readonly char DSC = Path.DirectorySeparatorChar;
 
-        static void Main( string[] args )
+        public static void Main( string[] args )
         {
             String outDir = ( args.Length > 1 ? args[ 1 ] : null );
 
@@ -29,11 +29,11 @@ namespace TravellingSalesman
 #endif
         }
 
-        static void SearchSingle( String filePath, String outDir = null )
+        public static void SearchSingle( String filePath, String outDir = null )
         {
             Console.WriteLine( "Loading file {0}", filePath );
             Graph graph = Graph.FromFile( filePath );
-            Console.WriteLine( "Graph loaded: {0} has {1} vertices", graph.Name, graph.Size );
+            Console.WriteLine( "Graph loaded: {0} has {1} vertices", graph.Name, graph.Count );
 
             ISearcher searcher;
             Stopwatch stopwatch = new Stopwatch();
@@ -85,7 +85,7 @@ namespace TravellingSalesman
             }
         }
 
-        static void SearchDirectory( String directory, String outDir = null )
+        public static void SearchDirectory( String directory, String outDir = null )
         {
             Console.WriteLine( "Loading directory {0}", directory );
             foreach( String filePath in Directory.EnumerateFiles( directory ) )

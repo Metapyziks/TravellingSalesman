@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TravellingSalesman
 {
-    class WorstFirstSearcher : ConstructiveSearcher
+    public class WorstFirstSearcher : ConstructiveSearcher
     {
         private int _lastIndex;
 
@@ -15,21 +15,23 @@ namespace TravellingSalesman
 
         protected override int ChooseNext( Route route )
         {
+            if ( route.Count == 0 )
+                return 0;
+
             int best = -1;
+            int bestVal = -1;
             int score = 0;
             _lastIndex = 0;
 
-            for ( int i = 0; i < route.Graph.Size; ++i )
+            for ( int i = route.Count; i < route.Graph.Count; ++i )
             {
-                if ( IsAdded( i ) )
-                    continue;
-
+                int val = route.GetFromSelectionBuffer( i );
                 int minDist = Int32.MaxValue;
                 int minIndex = 0;
                 for ( int j = 0; j < route.Count; ++j )
                 {
-                    int dist = route.Graph[ i, route[ j ] ]
-                        + route.Graph[ i, route[ j + 1 ] ];
+                    int dist = route.Graph[val, route[j]]
+                        + route.Graph[val, route[j + 1]];
 
                     if ( dist < minDist )
                     {
@@ -38,13 +40,17 @@ namespace TravellingSalesman
                     }
                 }
 
-                if ( minDist > score )
+                if ( minDist > score || ( minDist == score && val < bestVal ) )
                 {
                     best = i;
+                    bestVal = val;
                     score = minDist;
                     _lastIndex = minIndex;
                 }
             }
+
+            if ( best == -1 )
+                throw new Exception();
 
             return best;
         }
