@@ -1,4 +1,4 @@
-Travelling-Salesman
+TravellingSalesman
 ===================
 
 AI Search assignment
