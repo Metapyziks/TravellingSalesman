@@ -98,7 +98,7 @@ namespace TravellingSalesman
             return _indices[index];
         }
 
-        public void Insert( int vIndex, int index )
+        public virtual void Insert( int vIndex, int index )
         {
             if ( _count >= Graph.Count )
                 throw new Exception( "Route is at maximum capacity" );
@@ -140,12 +140,12 @@ namespace TravellingSalesman
             return _indices.SelectStatisticIndex( k, Count, Graph.Count - Count, _nextComparer );
         }
 
-        public void Reverse()
+        public virtual void Reverse()
         {
             Reverse( 0, Count );
         }
 
-        public void Reverse( int start, int count )
+        public virtual void Reverse( int start, int count )
         {
             int mid = count / 2;
             for ( int i = 0; i < mid; ++i )

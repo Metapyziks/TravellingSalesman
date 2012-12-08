@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Include="BestFirstSearcher.cs" />
     <Compile Include="ConstructiveSearcher.cs" />
+    <Compile Include="GeneticRoute.cs" />
     <Compile Include="GeneticSearcher.cs" />
     <Compile Include="Graph.cs" />
     <Compile Include="HillClimbSearcher.cs" />

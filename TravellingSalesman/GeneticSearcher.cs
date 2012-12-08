@@ -7,24 +7,6 @@ namespace TravellingSalesman
 {
     public class GeneticSearcher : ISearcher
     {
-        private static List<int> _sBitCountCache = new List<int>();
-
-        protected static int FindBitCount( int size )
-        {
-            if ( size < 0 )
-                return 0;
-
-            if ( _sBitCountCache.Count <= size )
-            {
-                int curr = ( ( size < 2 ) ? 0 :
-                    (int) Math.Ceiling( Math.Log( size, 2 ) ) )
-                    + FindBitCount( size - 1 );
-
-                _sBitCountCache.Add( curr );
-            }
-
-            return _sBitCountCache[size];
-        }
 
         private Random _rand;
 
@@ -49,12 +31,9 @@ namespace TravellingSalesman
             for ( int i = 0; i < graph.Count; ++i )
             {
                 int next = route.SelectNextBest( graph.Count - i - 1 );
-                int nextVal = route.GetFromSelectionBuffer( next );
-                if( i > 0 )
-                    Console.WriteLine( "{0}: {1} ({2})", i, nextVal, route.Graph[route[route.Count - 1], nextVal] );
-                else
-                    Console.WriteLine( "{0}: {1} ({2})", i, nextVal, 0 );
                 route.AddEnd( next );
+
+                FindGenes( route );
             }
 
             return route;
@@ -62,13 +41,22 @@ namespace TravellingSalesman
 
         protected virtual byte[] FindGenes( Route route )
         {
-            byte[] genes = new byte[FindBitCount( route.Count )];
-            for ( int i = 0; i < route.Count; ++i )
-            {
 
+            return null;
+            /*
+            byte[] genes = new byte[FindTotalBitCount( route.Count )];
+            for ( int i = 0, j = 0; i < route.Count; ++i )
+            {
+                int bits = FindBitCount( route.Count );
+
+                for ( int k = j & 0x7; k < bits; k += 8 )
+                    genes[k] |= (byte) ( ( ( ( route[i] >> ( k << 8 ) ) << ( j & 0x7 ) ) & 0xff ) );
+
+                j += bits;
             }
 
-            return new byte[0];
+            return genes;
+            */
         }
 
         protected virtual Route FindRoute( Graph graph, byte[] genes )

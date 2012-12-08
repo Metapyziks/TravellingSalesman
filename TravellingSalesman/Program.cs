@@ -21,7 +21,7 @@ namespace TravellingSalesman
 
 #if DEBUG
             SearchSingle( args.Length > 0 ? args[0]
-                : "cityfiles" + DSC + "SAtestcase.txt", outDir );
+                : "cityfiles" + DSC + "SAfile535.txt", outDir );
             Console.ReadKey();
 #else
             SearchDirectory( args.Length > 0 ? args[0] : "cityfiles", outDir );
@@ -40,7 +40,7 @@ namespace TravellingSalesman
 #if DEBUG
             Route route;
 
-            searcher = new WorstFirstSearcher();
+            /*searcher = new WorstFirstSearcher();
             stopwatch.Restart();
             route = searcher.Search( graph, true );
             stopwatch.Stop();
@@ -52,7 +52,15 @@ namespace TravellingSalesman
             route = searcher.Search( graph, true );
             stopwatch.Restart();
             Console.WriteLine( "Search time: {0}ms", stopwatch.ElapsedMilliseconds );
+            Console.WriteLine( route.ToString() );*/
+
+            searcher = new GeneticSearcher();
+            stopwatch.Restart();
+            route = searcher.Search( graph, true );
+            Console.WriteLine( "Search time: {0}ms", stopwatch.ElapsedMilliseconds );
             Console.WriteLine( route.ToString() );
+
+            return;
 #endif
             searcher = new WorstFirstSearcher( new ReversingSearcher() );
             stopwatch.Restart();
