@@ -33,14 +33,17 @@ namespace TravellingSalesman
 
         public byte[] Genes { get; private set; }
 
-        public GeneticRoute( Graph graph, int[] indices )
-            : base( graph, indices )
+        public GeneticRoute( Graph graph )
+            : base( graph, new int[0] )
         {
             _nextGeneBit = 0;
+
+            for ( int i = 0; i < graph.Count; ++i )
+                AddEnd( SelectNextBest( 0 ) );
         }
 
         public GeneticRoute( Graph graph, byte[] genes )
-            : this( graph, new int[0] )
+            : base( graph, new int[0] )
         {
             if ( genes.Length != ( FindTotalBitCount( Graph.Count ) + 7 ) >> 3 )
                 throw new Exception( "Incorrect gene count" );
@@ -67,7 +70,7 @@ namespace TravellingSalesman
                     (int) Math.Ceiling( (double) val * ( Graph.Count - Count - 1 )
                     / ( ( 1 << count ) - 1 ) ) : 0;
 
-                int vIndex = k + Count; //this.SelectNextBest( k );
+                int vIndex = this.SelectNextBest( k );
                 base.Insert( vIndex, g );
             }
 

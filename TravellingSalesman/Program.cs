@@ -63,7 +63,7 @@ namespace TravellingSalesman
             for ( int i = 0; i < indices.Length; ++i )
                 indices[i] = rand.Next( i, indices.Length );
 
-            GeneticRoute route = new GeneticRoute( graph, indices );
+            GeneticRoute route = new GeneticRoute( graph );
             GeneticRoute clone = new GeneticRoute( graph, route.Genes );
 
             Debug.Assert( route.Equals( clone ), "Not a clone :(" );

@@ -43,7 +43,7 @@ namespace TravellingSalesman
             for ( int i = 0; i < graph.Count; ++i )
                 indices[i] = i;
 
-            return new GeneticRoute( graph, indices );
+            return new GeneticRoute( graph );
         }
 
         protected virtual GeneticRoute CreateFromGenes( Graph graph, byte[] genes )
