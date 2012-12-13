@@ -26,43 +26,29 @@ namespace TravellingSalesman
 
         public Route Search( Graph graph, bool printProgress = false )
         {
-            Route route = new Route( graph, new int[0] );
+            GeneticRoute route = CreateInitialRoute( graph );
 
             for ( int i = 0; i < graph.Count; ++i )
             {
                 int next = route.SelectNextBest( graph.Count - i - 1 );
                 route.AddEnd( next );
-
-                FindGenes( route );
             }
 
             return route;
         }
 
-        protected virtual byte[] FindGenes( Route route )
+        protected virtual GeneticRoute CreateInitialRoute( Graph graph )
         {
+            int[] indices = new int[graph.Count];
+            for ( int i = 0; i < graph.Count; ++i )
+                indices[i] = i;
 
-            return null;
-            /*
-            byte[] genes = new byte[FindTotalBitCount( route.Count )];
-            for ( int i = 0, j = 0; i < route.Count; ++i )
-            {
-                int bits = FindBitCount( route.Count );
-
-                for ( int k = j & 0x7; k < bits; k += 8 )
-                    genes[k] |= (byte) ( ( ( ( route[i] >> ( k << 8 ) ) << ( j & 0x7 ) ) & 0xff ) );
-
-                j += bits;
-            }
-
-            return genes;
-            */
+            return new GeneticRoute( graph, indices );
         }
 
-        protected virtual Route FindRoute( Graph graph, byte[] genes )
+        protected virtual GeneticRoute CreateFromGenes( Graph graph, byte[] genes )
         {
-            int bitCount = graph.Count;
-            return Route.CreateDefault( graph );
+            return new GeneticRoute( graph, genes );
         }
 
         protected virtual byte[] Crossover( byte[] parentA, byte[] parentB )

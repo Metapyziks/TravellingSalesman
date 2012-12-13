@@ -103,6 +103,9 @@ namespace TravellingSalesman
             if ( _count >= Graph.Count )
                 throw new Exception( "Route is at maximum capacity" );
 
+            if ( vIndex < Count )
+                throw new IndexOutOfRangeException();
+
             int val = _indices[vIndex];
             _added[val] = true;
 

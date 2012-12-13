@@ -38,9 +38,11 @@ namespace TravellingSalesman
             ISearcher searcher;
             Stopwatch stopwatch = new Stopwatch();
 #if DEBUG
-            Route route;
 
-            /*searcher = new WorstFirstSearcher();
+            /*
+            Route route;
+            
+            searcher = new WorstFirstSearcher();
             stopwatch.Restart();
             route = searcher.Search( graph, true );
             stopwatch.Stop();
@@ -52,13 +54,19 @@ namespace TravellingSalesman
             route = searcher.Search( graph, true );
             stopwatch.Restart();
             Console.WriteLine( "Search time: {0}ms", stopwatch.ElapsedMilliseconds );
-            Console.WriteLine( route.ToString() );*/
-
-            searcher = new GeneticSearcher();
-            stopwatch.Restart();
-            route = searcher.Search( graph, true );
-            Console.WriteLine( "Search time: {0}ms", stopwatch.ElapsedMilliseconds );
             Console.WriteLine( route.ToString() );
+            */
+
+            Random rand = new Random( 0x01234567);
+                        
+            int[] indices = new int[graph.Count];
+            for ( int i = 0; i < indices.Length; ++i )
+                indices[i] = rand.Next( i, indices.Length );
+
+            GeneticRoute route = new GeneticRoute( graph, indices );
+            GeneticRoute clone = new GeneticRoute( graph, route.Genes );
+
+            Debug.Assert( route.Equals( clone ), "Not a clone :(" );
 
             return;
 #endif
