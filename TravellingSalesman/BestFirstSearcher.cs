@@ -15,6 +15,9 @@ namespace TravellingSalesman
             if ( route.Count == 0 )
                 return 0;
 
+            // New method which happens to be worse for the biggest graph:
+            // best = route.SelectNextBest();
+
             int last = route[route.Count - 1];
 
             int best = -1;
@@ -31,9 +34,6 @@ namespace TravellingSalesman
                     score = dist;
                 }
             }
-
-            // New method which happens to be worse for the biggest graph:
-            // best = route.SelectNextBest();
 
             return best;
         }

@@ -19,6 +19,7 @@ namespace TravellingSalesman
         {
             if ( printProgress )
             {
+                Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine( "# Starting a new {0} with route of length {1}", GetType().Name, route.Length );
                 Console.Write( "Current best: {0}", route.Length );
             }
@@ -36,7 +37,10 @@ namespace TravellingSalesman
             }
 
             if ( printProgress )
+            {
                 Console.WriteLine( "\nPeak reached" );
+                Console.ForegroundColor = ConsoleColor.White;
+            }
         }
 
         protected abstract bool Iterate( Route route );

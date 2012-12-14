@@ -18,41 +18,28 @@ namespace TravellingSalesman
             if ( route.Count == 0 )
                 return 0;
 
+            return route.SelectNextBest( route.Graph.Count - route.Count - 1 );
+
+            /*
+            int last = route[route.Count - 1];
+
             int best = -1;
             int bestVal = -1;
             int score = 0;
-            _lastIndex = 0;
-
             for ( int i = route.Count; i < route.Graph.Count; ++i )
             {
                 int val = route.GetFromSelectionBuffer( i );
-                int minDist = Int32.MaxValue;
-                int minIndex = 0;
-                for ( int j = 0; j < route.Count; ++j )
-                {
-                    int dist = route.Graph[val, route[j]]
-                        + route.Graph[val, route[j + 1]];
-
-                    if ( dist < minDist )
-                    {
-                        minDist = dist;
-                        minIndex = j;
-                    }
-                }
-
-                if ( minDist > score || ( minDist == score && val < bestVal ) )
+                int dist = route.Graph[last, val];
+                if ( dist > score || ( dist == score && val < bestVal ) )
                 {
                     best = i;
                     bestVal = val;
-                    score = minDist;
-                    _lastIndex = minIndex;
+                    score = dist;
                 }
             }
 
-            if ( best == -1 )
-                throw new Exception();
-
             return best;
+            */
         }
 
         protected override int ChooseIndex( Route route, int vIndex )

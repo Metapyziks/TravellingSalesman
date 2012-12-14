@@ -21,11 +21,17 @@ namespace TravellingSalesman
 
             if ( printProgress )
             {
-                Console.WriteLine( "# Starting a new {0} search", GetType().Name );
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine( "Starting a new {0} search", GetType().Name );
                 if ( _improver != null )
+                {
+                    Console.ForegroundColor = ConsoleColor.DarkGreen;
                     Console.WriteLine( "Search will use {0} to "
                     + "improve each iteration", _improver.GetType().Name );
+                }
+                Console.ForegroundColor = ConsoleColor.Green;
                 Console.Write( "Progress: 0/{0} - 0", graph.Count );
+                Console.ForegroundColor = ConsoleColor.White;
             }
 
             int lastCount = route.Count;
@@ -34,21 +40,25 @@ namespace TravellingSalesman
                 int vIndex = ChooseNext( route );
                 route.Insert( vIndex, ChooseIndex( route, vIndex ) );
 
-                if ( printProgress )
-                {
-                    Console.CursorLeft = 10;
-                    Console.Write( "{0}/{1} - {2}",
-                        route.Count, graph.Count, route.Length );
-                }
-
                 lastCount = route.Count;
 
                 if ( _improver != null )
-                    _improver.Improve( route );
+                    _improver.Improve( route, false );
+
+                if ( printProgress )
+                {
+                    Console.CursorLeft = 10;
+                    Console.Write( "{0}/{1} - {2}    ",
+                        route.Count, graph.Count, route.Length );
+                }
             }
 
             if ( printProgress )
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine( "\nConstructive search complete" );
+                Console.ForegroundColor = ConsoleColor.White;
+            }
 
             return route;
         }

@@ -11,6 +11,7 @@ namespace TravellingSalesman
     public class Program
     {
         private static readonly char DSC = Path.DirectorySeparatorChar;
+        private static readonly Stopwatch _stopwatch = new Stopwatch();
 
         public static void Main( string[] args )
         {
@@ -29,63 +30,49 @@ namespace TravellingSalesman
 #endif
         }
 
+        private static Route RunSearch( Graph graph, ISearcher searcher )
+        {
+            _stopwatch.Restart();
+            Route route = searcher.Search( graph, true );
+            _stopwatch.Stop();
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine( "Search time: {0}ms", _stopwatch.ElapsedMilliseconds );
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine( route.ToString() );
+            return route;
+        }
+
         public static void SearchSingle( String filePath, String outDir = null )
         {
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine( "Loading file {0}", filePath );
             Graph graph = Graph.FromFile( filePath );
             Console.WriteLine( "Graph loaded: {0} has {1} vertices", graph.Name, graph.Count );
 
-            ISearcher searcher;
-            Stopwatch stopwatch = new Stopwatch();
 #if DEBUG
-
-            /*
+            ISearcher searcher;
             Route route;
             
             searcher = new WorstFirstSearcher();
-            stopwatch.Restart();
+            _stopwatch.Restart();
             route = searcher.Search( graph, true );
-            stopwatch.Stop();
-            Console.WriteLine( "Search time: {0}ms", stopwatch.ElapsedMilliseconds );
+            _stopwatch.Stop();
+            Console.WriteLine( "Search time: {0}ms", _stopwatch.ElapsedMilliseconds );
             Console.WriteLine( route.ToString() );
 
             searcher = new BestFirstSearcher();
-            stopwatch.Start();
+            _stopwatch.Start();
             route = searcher.Search( graph, true );
-            stopwatch.Restart();
-            Console.WriteLine( "Search time: {0}ms", stopwatch.ElapsedMilliseconds );
+            _stopwatch.Restart();
+            Console.WriteLine( "Search time: {0}ms", _stopwatch.ElapsedMilliseconds );
             Console.WriteLine( route.ToString() );
-            */
-
-            Random rand = new Random( 0x01234567);
-                        
-            int[] indices = new int[graph.Count];
-            for ( int i = 0; i < indices.Length; ++i )
-                indices[i] = rand.Next( i, indices.Length );
-
-            GeneticRoute route = new GeneticRoute( graph );
-            GeneticRoute clone = new GeneticRoute( graph, route.Genes );
-
-            Debug.Assert( route.Equals( clone ), "Not a clone :(" );
-
-            return;
 #endif
-            searcher = new WorstFirstSearcher( new ReversingSearcher() );
-            stopwatch.Restart();
-            Route wfs = searcher.Search( graph, true );
-            stopwatch.Stop();
-            Console.WriteLine( "Search time: {0}ms", stopwatch.ElapsedMilliseconds );
-            Console.WriteLine( wfs.ToString() );
-
-            searcher = new BestFirstSearcher( new ReversingSearcher() );
-            stopwatch.Restart();
-            Route bfs = searcher.Search( graph, true );
-            stopwatch.Stop();
-            Console.WriteLine( "Search time: {0}ms", stopwatch.ElapsedMilliseconds );
-            Console.WriteLine( bfs.ToString() );
+            Route wfs = RunSearch( graph, new WorstFirstSearcher( new ReversingSearcher() ) );
+            Route bfs = RunSearch( graph, new BestFirstSearcher( new ReversingSearcher() ) );
 
             if ( wfs.Length < bfs.Length )
             {
+                Console.ForegroundColor = ConsoleColor.Blue;
                 Console.WriteLine( "WorstFirstSearcher was better!" );
 
                 if ( outDir != null )
@@ -94,7 +81,16 @@ namespace TravellingSalesman
 
             if ( bfs.Length <= wfs.Length )
             {
-                Console.WriteLine( "BestFirstSearcher was better!" );
+                if ( bfs.Length < wfs.Length )
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine( "BestFirstSearcher was better!" );
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Magenta;
+                    Console.WriteLine( "Both routes had equal length!" );
+                }
 
                 if ( outDir != null )
                     File.WriteAllText( outDir + DSC + "tour" + graph.Name + ".txt", bfs.ToString( true ) );
@@ -103,9 +99,11 @@ namespace TravellingSalesman
 
         public static void SearchDirectory( String directory, String outDir = null )
         {
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine( "Loading directory {0}", directory );
             foreach( String filePath in Directory.EnumerateFiles( directory ) )
                 SearchSingle( filePath, outDir );
+            Console.ForegroundColor = ConsoleColor.White;
         }
     }
 }
