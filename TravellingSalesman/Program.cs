@@ -70,17 +70,22 @@ namespace TravellingSalesman
             Route wfs = RunSearch( graph, new WorstFirstSearcher( new ReversingSearcher() ) );
             Route bfs = RunSearch( graph, new BestFirstSearcher( new ReversingSearcher() ) );
 
+            int best = 0;
+
             if ( wfs.Length < bfs.Length )
             {
+                best = wfs.Length;
+
                 Console.ForegroundColor = ConsoleColor.Blue;
                 Console.WriteLine( "WorstFirstSearcher was better!" );
 
                 if ( outDir != null )
                     File.WriteAllText( outDir + DSC + "tour" + graph.Name + ".txt", wfs.ToString( true ) );
             }
-
-            if ( bfs.Length <= wfs.Length )
+            else
             {
+                best = bfs.Length;
+
                 if ( bfs.Length < wfs.Length )
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
@@ -95,6 +100,26 @@ namespace TravellingSalesman
                 if ( outDir != null )
                     File.WriteAllText( outDir + DSC + "tour" + graph.Name + ".txt", bfs.ToString( true ) );
             }
+
+            Route gns = RunSearch( graph, new GeneticSearcher() );
+
+            if ( gns.Length < best )
+            {
+                Console.ForegroundColor = ConsoleColor.Blue;
+                Console.WriteLine( "GeneticSearcher was better!" );
+            }
+            else if ( gns.Length == best )
+            {
+                Console.ForegroundColor = ConsoleColor.Magenta;
+                Console.WriteLine( "Both routes had equal length!" );
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine( "GeneticSearcher was worse!" );
+            }
+
+            File.WriteAllText( "gvnj58\\TourfileA" + DSC + "tour" + graph.Name + ".txt", gns.ToString( true ) );
         }
 
         public static void SearchDirectory( String directory, String outDir = null )

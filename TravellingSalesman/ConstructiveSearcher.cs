@@ -17,7 +17,7 @@ namespace TravellingSalesman
 
         public Route Search( Graph graph, bool printProgress = false )
         {
-            Route route = new Route( graph, new int[0] );
+            Route route = new Route( graph );
 
             if ( printProgress )
             {

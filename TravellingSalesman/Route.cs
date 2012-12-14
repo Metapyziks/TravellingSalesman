@@ -30,7 +30,7 @@ namespace TravellingSalesman
             for ( int i = 0; i < graph.Count; ++i )
                 indices[i] = i;
 
-            return new Route( graph, indices );
+            return new Route( graph, indices, graph.Count );
         }
 
         public readonly Graph Graph;
@@ -76,7 +76,7 @@ namespace TravellingSalesman
             }
         }
 
-        public Route( Graph graph, int[] indices )
+        public Route( Graph graph )
         {
             Graph = graph;
 
@@ -88,9 +88,23 @@ namespace TravellingSalesman
 
             for ( int i = 0; i < graph.Count; ++i )
                 _indices[i] = i;
+        }
 
-            for ( int i = 0; i < indices.Length; ++i )
-                AddEnd( indices[i] );
+        public Route( Route clone )
+            : this( clone.Graph, clone._indices, clone.Count )
+        {
+            _length = clone._length;
+        }
+
+        public Route( Graph graph, int[] indices, int count )
+            : this( graph )
+        {
+            _count = count;
+            for ( int i = 0; i < graph.Count; ++i )
+            {
+                _indices[i] = indices[i];
+                _added[indices[i]] = i < _count;
+            }
         }
 
         public int GetFromSelectionBuffer( int index )
@@ -159,6 +173,11 @@ namespace TravellingSalesman
             }
 
             _length = -1;
+        }
+
+        public virtual void Clear()
+        {
+            _count = 0;
         }
 
         public override string ToString()

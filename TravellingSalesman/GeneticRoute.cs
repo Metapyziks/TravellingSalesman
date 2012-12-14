@@ -9,12 +9,12 @@ namespace TravellingSalesman
     {
         private static List<int> _sBitCountCache = new List<int>();
 
-        protected static int FindBitCount( int size )
+        private static int FindBitCount( int size )
         {
             return (int) Math.Ceiling( Math.Log( size, 2 ) );
         }
 
-        protected static int FindTotalBitCount( int size )
+        private static int FindTotalBitCount( int size )
         {
             if ( size < 0 )
                 return 0;
@@ -29,36 +29,50 @@ namespace TravellingSalesman
             return _sBitCountCache[size];
         }
 
+        private static int FindTotalByteCount( int size )
+        {
+            return ( FindTotalBitCount( size ) + 7 ) >> 3;
+        }
+
         private int _nextGeneBit;
 
         public byte[] Genes { get; private set; }
 
-        public GeneticRoute( Graph graph )
-            : base( graph, new int[0] )
+        public GeneticRoute( Graph graph, Random rand )
+            : base( graph )
         {
             _nextGeneBit = 0;
 
-            for ( int i = 0; i < graph.Count; ++i )
-                AddEnd( SelectNextBest( 0 ) );
+            Genes = new byte[FindTotalByteCount( graph.Count )];
+            for ( int i = 0; i < Genes.Length; ++i )
+                Genes[i] = (byte) rand.Next( 1 );
+            UpdateFromGenes();
         }
 
         public GeneticRoute( Graph graph, byte[] genes )
-            : base( graph, new int[0] )
+            : base( graph )
         {
-            if ( genes.Length != ( FindTotalBitCount( Graph.Count ) + 7 ) >> 3 )
+            if ( genes.Length != FindTotalByteCount( graph.Count ) )
                 throw new Exception( "Incorrect gene count" );
 
-            for ( int g = 0; g < graph.Count; ++g )
+            Genes = genes;
+            UpdateFromGenes();
+        }
+
+        public void UpdateFromGenes()
+        {
+            Clear();
+            for ( int g = 0; g < Graph.Count; ++g )
             {
                 int start = _nextGeneBit;
                 int count = FindBitCount( Graph.Count - Count );
                 int end = ( _nextGeneBit += count );
                 int val = 0;
 
-                for ( int b = count, i = start >> 3; b > -8 && i < genes.Length; b -= 8, ++i )
+                for ( int b = count, i = start >> 3; b > -8 && i < Genes.Length; b -= 8, ++i )
                 {
                     int shift = b - 8 + ( start & 0x7 );
-                    byte byt = genes[i];
+                    byte byt = Genes[i];
 
                     if ( b == count )
                         byt &= (byte) ( 0xff >> ( start & 0x7 ) );
@@ -73,8 +87,6 @@ namespace TravellingSalesman
                 int vIndex = this.SelectNextBest( k );
                 base.Insert( vIndex, g );
             }
-
-            Genes = (byte[]) genes.Clone();
         }
 
         public override void Insert( int vIndex, int index )
@@ -84,9 +96,6 @@ namespace TravellingSalesman
 
             if ( index != Count )
                 throw new NotSupportedException();
-
-            if ( Genes == null )
-                Genes = new byte[(FindTotalBitCount( Graph.Count ) + 7 ) >> 3];
 
             int start = _nextGeneBit;
             int count = FindBitCount( Graph.Count - Count );
@@ -104,6 +113,13 @@ namespace TravellingSalesman
             }
 
             base.Insert( vIndex, index );
+        }
+
+        public override void Clear()
+        {
+            base.Clear();
+
+            _nextGeneBit = 0;
         }
 
         public override void Reverse(int start, int count)
