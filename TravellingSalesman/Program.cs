@@ -17,8 +17,17 @@ namespace TravellingSalesman
         {
             String outDir = ( args.Length > 1 ? args[ 1 ] : null );
 
-            if( outDir != null && !Directory.Exists( outDir ) )
-                Directory.CreateDirectory( outDir );
+            if ( outDir != null )
+            {
+                if ( !Directory.Exists( outDir ) )
+                    Directory.CreateDirectory( outDir );
+
+                if ( !Directory.Exists( outDir + DSC + "TourfileA" ) )
+                    Directory.CreateDirectory( outDir + DSC + "TourfileA" );
+
+                if ( !Directory.Exists( outDir + DSC + "TourfileB" ) )
+                    Directory.CreateDirectory( outDir + DSC + "TourfileB" );
+            }
 
 #if DEBUG
             SearchSingle( args.Length > 0 ? args[0]
@@ -30,11 +39,21 @@ namespace TravellingSalesman
 #endif
         }
 
-        private static Route RunSearch( Graph graph, ISearcher searcher )
+        private static Route RunSearch( Graph graph, ISearcher searcher, Route route = null )
         {
-            _stopwatch.Restart();
-            Route route = searcher.Search( graph, true );
-            _stopwatch.Stop();
+            if ( searcher is HillClimbSearcher && route != null )
+            {
+                route = new Route( route );
+                _stopwatch.Restart();
+                ( (HillClimbSearcher) searcher ).Improve( route, true );
+                _stopwatch.Stop();
+            }
+            else
+            {
+                _stopwatch.Restart();
+                route = searcher.Search( graph, true );
+                _stopwatch.Stop();
+            }
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine( "Search time: {0}ms", _stopwatch.ElapsedMilliseconds );
             Console.ForegroundColor = ConsoleColor.White;
@@ -53,38 +72,33 @@ namespace TravellingSalesman
             ISearcher searcher;
             Route route;
             
-            searcher = new WorstFirstSearcher();
+            searcher = new BestFirstSearcher( new ReversingSearcher() );
             _stopwatch.Restart();
             route = searcher.Search( graph, true );
             _stopwatch.Stop();
             Console.WriteLine( "Search time: {0}ms", _stopwatch.ElapsedMilliseconds );
             Console.WriteLine( route.ToString() );
 
-            searcher = new BestFirstSearcher();
-            _stopwatch.Start();
-            route = searcher.Search( graph, true );
-            _stopwatch.Restart();
-            Console.WriteLine( "Search time: {0}ms", _stopwatch.ElapsedMilliseconds );
-            Console.WriteLine( route.ToString() );
-#endif
+            GeneticSearcher genSearcher = new GeneticSearcher();
+            genSearcher.Improve( route, true );
+#else
             Route wfs = RunSearch( graph, new WorstFirstSearcher( new ReversingSearcher() ) );
             Route bfs = RunSearch( graph, new BestFirstSearcher( new ReversingSearcher() ) );
 
-            int best = 0;
+            Route best = wfs;
 
             if ( wfs.Length < bfs.Length )
             {
-                best = wfs.Length;
-
                 Console.ForegroundColor = ConsoleColor.Blue;
                 Console.WriteLine( "WorstFirstSearcher was better!" );
 
                 if ( outDir != null )
-                    File.WriteAllText( outDir + DSC + "tour" + graph.Name + ".txt", wfs.ToString( true ) );
+                    File.WriteAllText( outDir + DSC + "TourfileA" + DSC
+                        + "tour" + graph.Name + ".txt", wfs.ToString( true ) );
             }
             else
             {
-                best = bfs.Length;
+                best = bfs;
 
                 if ( bfs.Length < wfs.Length )
                 {
@@ -98,17 +112,18 @@ namespace TravellingSalesman
                 }
 
                 if ( outDir != null )
-                    File.WriteAllText( outDir + DSC + "tour" + graph.Name + ".txt", bfs.ToString( true ) );
+                    File.WriteAllText( outDir + DSC + "TourfileA" + DSC + "tour"
+                        + graph.Name + ".txt", bfs.ToString( true ) );
             }
 
-            Route gns = RunSearch( graph, new GeneticSearcher() );
+            Route gns = RunSearch( graph, new GeneticSearcher(), best );
 
-            if ( gns.Length < best )
+            if ( gns.Length < best.Length )
             {
                 Console.ForegroundColor = ConsoleColor.Blue;
                 Console.WriteLine( "GeneticSearcher was better!" );
             }
-            else if ( gns.Length == best )
+            else if ( gns.Length == best.Length )
             {
                 Console.ForegroundColor = ConsoleColor.Magenta;
                 Console.WriteLine( "Both routes had equal length!" );
@@ -119,7 +134,10 @@ namespace TravellingSalesman
                 Console.WriteLine( "GeneticSearcher was worse!" );
             }
 
-            File.WriteAllText( "gvnj58\\TourfileA" + DSC + "tour" + graph.Name + ".txt", gns.ToString( true ) );
+            if( outDir != null )
+                File.WriteAllText( outDir + DSC + "TourfileB" + DSC + "tour"
+                    + graph.Name + ".txt", gns.ToString( true ) );
+#endif
         }
 
         public static void SearchDirectory( String directory, String outDir = null )

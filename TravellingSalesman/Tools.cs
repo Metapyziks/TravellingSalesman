@@ -119,5 +119,35 @@ namespace TravellingSalesman
             return buffer.SelectStatisticIndex( k + start - medianIndex - 1, medianIndex + 1,
                 count + start - medianIndex - 1, comparer );
         }
+
+        public static int FindIndexStatistic( this int[] buffer, int index )
+        {
+            return buffer.FindIndexStatistic( index, 0, buffer.Length, Comparer<int>.Default );
+        }
+
+        public static int FindIndexStatistic( this int[] buffer, int index, IComparer<int> comparer )
+        {
+            return buffer.FindIndexStatistic( index, 0, buffer.Length, comparer );
+        }
+
+        public static int FindIndexStatistic( this int[] buffer, int index,
+            int start, int count )
+        {
+            return buffer.FindIndexStatistic( index, start, count, Comparer<int>.Default );
+        }
+
+        public static int FindIndexStatistic( this int[] buffer, int index,
+            int start, int count, IComparer<int> comparer )
+        {
+            if ( index < start || index >= start + count )
+                throw new IndexOutOfRangeException();
+
+            int statistic = 0;
+            for ( int i = start; i < start + count; ++i )
+                if ( comparer.Compare( buffer[i], buffer[index] ) < 0 )
+                    ++statistic;
+
+            return statistic;
+        }
     }
 }

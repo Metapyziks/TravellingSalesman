@@ -42,11 +42,20 @@ namespace TravellingSalesman
             : base( graph )
         {
             _nextGeneBit = 0;
-
             Genes = new byte[FindTotalByteCount( graph.Count )];
             for ( int i = 0; i < Genes.Length; ++i )
                 Genes[i] = (byte) rand.Next( 1 );
-            UpdateFromGenes();
+
+            UpdateIndicesFromGenes();
+        }
+
+        public GeneticRoute( Route route )
+            : base( route )
+        {
+            _nextGeneBit = 0;
+            Genes = new byte[FindTotalByteCount( Graph.Count )];
+
+            UpdateGenesFromIndices();
         }
 
         public GeneticRoute( Graph graph, byte[] genes )
@@ -56,10 +65,10 @@ namespace TravellingSalesman
                 throw new Exception( "Incorrect gene count" );
 
             Genes = genes;
-            UpdateFromGenes();
+            UpdateIndicesFromGenes();
         }
 
-        public void UpdateFromGenes()
+        public void UpdateIndicesFromGenes()
         {
             Clear();
             for ( int g = 0; g < Graph.Count; ++g )
@@ -89,14 +98,8 @@ namespace TravellingSalesman
             }
         }
 
-        public override void Insert( int vIndex, int index )
+        private void AddGene( int vIndex )
         {
-            if ( vIndex < Count )
-                throw new IndexOutOfRangeException();
-
-            if ( index != Count )
-                throw new NotSupportedException();
-
             int start = _nextGeneBit;
             int count = FindBitCount( Graph.Count - Count );
             int end = ( _nextGeneBit += count );
@@ -111,6 +114,28 @@ namespace TravellingSalesman
 
                 Genes[i] |= byt;
             }
+        }
+
+        public void UpdateGenesFromIndices()
+        {
+            int count = Count;
+            Clear();
+            while( Count < count )
+            {
+                AddGene( Count + FindStatistic( Count ) );
+                base.Insert( Count, Count );
+            }
+        }
+
+        public override void Insert( int vIndex, int index )
+        {
+            if ( vIndex < Count )
+                throw new IndexOutOfRangeException();
+
+            if ( index != Count )
+                throw new NotSupportedException();
+
+            AddGene( index );
 
             base.Insert( vIndex, index );
         }

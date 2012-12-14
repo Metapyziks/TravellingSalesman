@@ -5,7 +5,7 @@ using System.Text;
 
 namespace TravellingSalesman
 {
-    public class GeneticSearcher : ISearcher
+    public class GeneticSearcher : HillClimbSearcher
     {
         private Random _rand;
 
@@ -13,10 +13,12 @@ namespace TravellingSalesman
 
         public int GenePoolCount { get; set; }
         public int SelectionCount { get; set; }
+        public int CorruptedCount { get; set; }
         public int GenerationLimit { get; set; }
 
         public double CrossoverSwapProbability { get; set; }
         public double BitFlipChance { get; set; }
+        public double BadSelectionChance { get; set; }
 
         public GeneticSearcher()
             : this( 0x743bc365 ) { }
@@ -25,15 +27,17 @@ namespace TravellingSalesman
         {
             _rand = new Random( seed );
 
-            GenePoolCount = 64;
-            SelectionCount = 8;
+            GenePoolCount = 128;
+            SelectionCount = 16;
+            CorruptedCount = 4;
             GenerationLimit = 1024;
 
-            CrossoverSwapProbability = 1.0 / 8.0;
-            BitFlipChance = 1.0;
+            CrossoverSwapProbability = 1.0 / 16.0;
+            BitFlipChance = 1.0 / 2.0;
+            BadSelectionChance = 1.0 / 32.0;
         }
 
-        public Route Search( Graph graph, bool printProgress = false )
+        public override void Improve( Route route, bool printProgress = false )
         {
             _genePool = new GeneticRoute[GenePoolCount];
 
@@ -45,12 +49,21 @@ namespace TravellingSalesman
                 Console.ForegroundColor = ConsoleColor.White;
             }
 
-            for ( int i = 0; i < GenePoolCount; ++i )
-                _genePool[i] = new GeneticRoute( graph, _rand );
+            _genePool[0] = new GeneticRoute( route );
+
+            for ( int i = 1; i < GenePoolCount; ++i )
+                _genePool[i] = new GeneticRoute( route.Graph, _rand );
 
             for ( int g = 0; g < GenerationLimit; ++g )
             {
-                for ( int i = SelectionCount; i < GenePoolCount; ++ i )
+                if ( printProgress )
+                {
+                    Console.CursorLeft = 10;
+                    Console.Write( "{0}/{1} - {2}:{3}   ", g, GenerationLimit,
+                        _genePool[0].Length, _genePool[SelectionCount - CorruptedCount - 1].Length );
+                }
+
+                for ( int i = SelectionCount; i < GenePoolCount; ++i )
                 {
                     GeneticRoute child = _genePool[i];
                     GeneticRoute parentA = _genePool[_rand.Next( SelectionCount / 2 )];
@@ -58,31 +71,29 @@ namespace TravellingSalesman
                     Crossover( child.Genes, parentA.Genes, parentB.Genes );
 
                     Mutate( child.Genes );
-                    child.UpdateFromGenes();
+                    child.UpdateIndicesFromGenes();
                 }
 
                 for ( int i = SelectionCount; i < GenePoolCount; ++i )
                 {
-                    GeneticRoute route = _genePool[i];
+                    GeneticRoute curnt = _genePool[i];
                     int l = i;
                     for ( int s = SelectionCount - 1; s >= 0; --s )
                     {
                         GeneticRoute other = _genePool[s];
-                        if ( other.Length > route.Length )
+                        if ( other.Length > curnt.Length
+                            || ( s >= SelectionCount - CorruptedCount && _rand.NextDouble() < BadSelectionChance ) )
                         {
-                            _genePool[s] = route;
+                            _genePool[s] = curnt;
                             _genePool[l] = other;
+
+                            l = s;
+
+                            if( s < SelectionCount - CorruptedCount )
+                                g = 0;
                         }
                         else break;
-                        l = s;
-                        g = 0;
                     }
-                }
-
-                if ( printProgress )
-                {
-                    Console.CursorLeft = 10;
-                    Console.Write( "{0}/{1} - {2}    ", g, GenerationLimit, _genePool[0].Length );
                 }
             }
 
@@ -97,7 +108,14 @@ namespace TravellingSalesman
 
             new ReversingSearcher().Improve( clone, false );
 
-            return clone;
+            route.Clear();
+            for ( int i = 0; i < clone.Count; ++i )
+                route.Insert( route.VIndexOf( clone[i] ), i );
+        }
+
+        protected override bool Iterate( Route route )
+        {
+            throw new NotImplementedException();
         }
 
         protected virtual void Crossover( byte[] dest, byte[] parentA, byte[] parentB )

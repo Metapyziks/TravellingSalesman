@@ -8,14 +8,14 @@ namespace TravellingSalesman
 {
     public abstract class HillClimbSearcher : ISearcher
     {
-        public Route Search( Graph graph, bool printProgress = false )
+        public virtual Route Search( Graph graph, bool printProgress = false )
         {
             Route route = Route.CreateDefault( graph );
             Improve( route, printProgress );
             return route;
         }
 
-        public void Improve( Route route, bool printProgress = false )
+        public virtual void Improve( Route route, bool printProgress = false )
         {
             if ( printProgress )
             {

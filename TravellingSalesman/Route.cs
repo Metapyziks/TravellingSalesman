@@ -112,6 +112,15 @@ namespace TravellingSalesman
             return _indices[index];
         }
 
+        public int VIndexOf( int index )
+        {
+            for ( int i = Count; i < Graph.Count; ++i )
+                if ( _indices[i] == index )
+                    return i;
+
+            return -1;
+        }
+
         public virtual void Insert( int vIndex, int index )
         {
             if ( _count >= Graph.Count )
@@ -144,9 +153,9 @@ namespace TravellingSalesman
             Insert( vIndex, 0 );
         }
 
-        public bool IsAdded( int vIndex )
+        public bool IsAdded( int index )
         {
-            return _added[vIndex];
+            return _added[index];
         }
 
         public int SelectNextBest( int k = 0 )
@@ -155,6 +164,14 @@ namespace TravellingSalesman
                 return k;
 
             return _indices.SelectStatisticIndex( k, Count, Graph.Count - Count, _nextComparer );
+        }
+
+        public int FindStatistic( int vIndex )
+        {
+            if ( Count == 0 )
+                return vIndex;
+
+            return _indices.FindIndexStatistic( vIndex, Count, Graph.Count - Count, _nextComparer );
         }
 
         public virtual void Reverse()
