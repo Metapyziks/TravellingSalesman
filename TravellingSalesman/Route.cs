@@ -267,8 +267,6 @@ namespace TravellingSalesman
 
         public void Save( String path )
         {
-            File.WriteAllText( path, ToString( true ) );
-
             if ( File.Exists( path ) )
             {
                 Route old = FromFile( Graph, path );
