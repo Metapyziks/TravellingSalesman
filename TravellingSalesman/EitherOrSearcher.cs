@@ -35,7 +35,7 @@ namespace TravellingSalesman
             if ( printProgress )
             {
                 Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.WriteLine( "And the winner is: {0}!", bestSearcher.GetType().Name );
+                Console.WriteLine( "And the winner is: {0} ({1})!", bestSearcher.GetType().Name, best.Length );
                 Console.ForegroundColor = ConsoleColor.White;
             }
 

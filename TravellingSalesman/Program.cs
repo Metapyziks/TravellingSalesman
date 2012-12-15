@@ -15,28 +15,24 @@ namespace TravellingSalesman
 
         public static void Main( string[] args )
         {
-            String outDir = ( args.Length > 1 ? args[ 1 ] : null );
+            String outDir = ( args.Length > 1 ? args[ 1 ] : null ) ?? "gvnj58";
 
-            if ( outDir != null )
-            {
-                if ( !Directory.Exists( outDir ) )
-                    Directory.CreateDirectory( outDir );
+            if ( !Directory.Exists( outDir ) )
+                Directory.CreateDirectory( outDir );
 
-                if ( !Directory.Exists( outDir + DSC + "TourfileA" ) )
-                    Directory.CreateDirectory( outDir + DSC + "TourfileA" );
+            if ( !Directory.Exists( outDir + DSC + "TourfileA" ) )
+                Directory.CreateDirectory( outDir + DSC + "TourfileA" );
 
-                if ( !Directory.Exists( outDir + DSC + "TourfileB" ) )
-                    Directory.CreateDirectory( outDir + DSC + "TourfileB" );
-            }
+            if ( !Directory.Exists( outDir + DSC + "TourfileB" ) )
+                Directory.CreateDirectory( outDir + DSC + "TourfileB" );
 
 #if DEBUG
             SearchSingle( args.Length > 0 ? args[0]
                 : "cityfiles" + DSC + "SAfile535.txt", outDir );
-            Console.ReadKey();
 #else
             SearchDirectory( args.Length > 0 ? args[0] : "cityfiles", outDir );
-            Console.ReadKey();
 #endif
+            Console.ReadKey();
         }
 
         private static Route RunSearch( Graph graph, ISearcher searcher, Route route = null )
@@ -61,7 +57,7 @@ namespace TravellingSalesman
             return route;
         }
 
-        public static void SearchSingle( String filePath, String outDir = null )
+        public static void SearchSingle( String filePath, String outDir )
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine( "Loading file {0}", filePath );
@@ -84,17 +80,24 @@ namespace TravellingSalesman
 #else
             EitherOrSearcher searcher = new EitherOrSearcher(
                 new WorstFirstSearcher( new ReversingSearcher() ),
-                new BestFirstSearcher( new ReversingSearcher() ) );
+                new BestFirstSearcher( new ReversingSearcher() ),
+                new AltBestFirstSearcher( new ReversingSearcher() ),
+                new StochasticHillClimbSearcher( new ReversingSearcher() ) );
 
             Route route = RunSearch( graph, searcher );
 
-            if ( outDir != null )
-                File.WriteAllText( outDir + DSC + "TourfileA" + DSC
-                    + "tour" + graph.Name + ".txt", route.ToString( true ) );
+            String savePath = outDir + DSC + "TourfileA" + DSC + "tour" + graph.Name + ".txt";
+            String datePath = Path.GetDirectoryName( savePath ) + Path.DirectorySeparatorChar;
+            datePath += Path.GetFileNameWithoutExtension( savePath ) + ".";
+            datePath += DateTime.Now.ToShortDateString().Replace( '/', '-' );
+            datePath += Path.GetExtension( savePath );
+
+            route.Save( savePath );
+            route.Save( datePath );
 #endif
         }
 
-        public static void SearchDirectory( String directory, String outDir = null )
+        public static void SearchDirectory( String directory, String outDir )
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine( "Loading directory {0}", directory );

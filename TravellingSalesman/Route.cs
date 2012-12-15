@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -31,6 +32,19 @@ namespace TravellingSalesman
                 indices[i] = i;
 
             return new Route( graph, indices, graph.Count );
+        }
+
+        public static Route CreateRandom( Graph graph, Random rand )
+        {
+            Route route = new Route( graph );
+            for ( int i = 0; i < graph.Count; ++i )
+                route.AddEnd( rand.Next( i, graph.Count ) );
+            return route;
+        }
+
+        public static Route FromFile( Graph graph, String path )
+        {
+            return new Route( graph, File.ReadAllText( path ) );
         }
 
         public readonly Graph Graph;
@@ -88,6 +102,35 @@ namespace TravellingSalesman
 
             for ( int i = 0; i < graph.Count; ++i )
                 _indices[i] = i;
+        }
+
+        private Route( Graph graph, String data )
+            : this( graph )
+        {
+            int index = 0;
+
+            String str;
+            while ( ( str = data.ReadNext( ref index ) ).IsKeyVal() )
+            {
+                KeyValuePair<String, String> keyVal = str.ParseKeyVal();
+                switch ( keyVal.Key )
+                {
+                    case "TOURSIZE":
+                        _count = Int32.Parse( keyVal.Value ); break;
+                    case "SIZE":
+                        _length = Int32.Parse( keyVal.Value ); break;
+                }
+            }
+
+            for ( int i = 0; i < Count; ++i )
+            {
+                _indices[i] = Int32.Parse( str ) - 1;
+                
+                if ( index >= data.Length )
+                    break;
+
+                str = data.ReadNext( ref index );
+            }
         }
 
         public Route( Route clone )
@@ -220,6 +263,20 @@ namespace TravellingSalesman
             }
 
             return builder.ToString( 0, builder.Length - 1 );
+        }
+
+        public void Save( String path )
+        {
+            File.WriteAllText( path, ToString( true ) );
+
+            if ( File.Exists( path ) )
+            {
+                Route old = FromFile( Graph, path );
+                if ( old.Length < Length || ( old.Length == Length && Equals( old ) ) )
+                    return;
+            }
+
+            File.WriteAllText( path, ToString( true ) );
         }
 
         public override bool Equals( object obj )

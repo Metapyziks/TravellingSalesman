@@ -11,31 +11,6 @@ namespace TravellingSalesman
             return new Graph( File.ReadAllText( path ) );
         }
 
-        private static String _ReadNext( String data, ref int index )
-        {
-            int next = data.IndexOf( ',', index );
-            if ( next == -1 )
-                next = data.Length;
-
-            String str = data.Substring( index, next - index );
-            index = next + 1;
-
-            return str.Trim();
-        }
-
-        private static bool _IsKeyVal( String str )
-        {
-            return str.Contains( "=" );
-        }
-
-        private static KeyValuePair<String, String> _ParseKeyVal( String str )
-        {
-            int equIndex = str.IndexOf( '=' );
-            return new KeyValuePair<string, string>(
-                str.Substring( 0, equIndex ).ToUpper().Trim(),
-                str.Substring( equIndex + 1 ).Trim() );
-        }
-
         public readonly String Name;
         public readonly int Count;
 
@@ -46,14 +21,14 @@ namespace TravellingSalesman
             get { return _weights[a, b]; }
         }
 
-        public Graph( String data )
+        private Graph( String data )
         {
             int index = 0;
 
             String str;
-            while ( _IsKeyVal( str = _ReadNext( data, ref index ) ) )
+            while ( ( str = data.ReadNext( ref index ) ).IsKeyVal() )
             {
-                KeyValuePair<String, String> keyVal = _ParseKeyVal( str );
+                KeyValuePair<String, String> keyVal = str.ParseKeyVal();
                 switch ( keyVal.Key )
                 {
                     case "NAME":
@@ -77,7 +52,7 @@ namespace TravellingSalesman
                     if ( index >= data.Length )
                         break;
 
-                    str = _ReadNext( data, ref index );
+                    str = data.ReadNext( ref index );
                 }
             }
         }

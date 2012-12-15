@@ -56,7 +56,7 @@ namespace TravellingSalesman
             if ( printProgress )
             {
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine( "\nConstructive search complete" );
+                Console.WriteLine( "\n{0} search complete", GetType().Name );
                 Console.ForegroundColor = ConsoleColor.White;
             }
 

@@ -7,6 +7,31 @@ namespace TravellingSalesman
 {
     public static class Tools
     {
+        public static String ReadNext( this String data, ref int index )
+        {
+            int next = data.IndexOf( ',', index );
+            if ( next == -1 )
+                next = data.Length;
+
+            String str = data.Substring( index, next - index );
+            index = next + 1;
+
+            return str.Trim();
+        }
+
+        public static bool IsKeyVal( this String str )
+        {
+            return str.Contains( "=" );
+        }
+
+        public static KeyValuePair<String, String> ParseKeyVal( this String str )
+        {
+            int equIndex = str.IndexOf( '=' );
+            return new KeyValuePair<string, string>(
+                str.Substring( 0, equIndex ).ToUpper().Trim(),
+                str.Substring( equIndex + 1 ).Trim() );
+        }
+
         public static int Partition( this int[] arr, int pivot )
         {
             return arr.Partition( 0, arr.Length - 1, pivot, Comparer<int>.Default );
