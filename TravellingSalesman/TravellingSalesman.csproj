@@ -43,8 +43,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AltBestFirstSearcher.cs" />
     <Compile Include="BestFirstSearcher.cs" />
+    <Compile Include="CompositeSearcher.cs" />
     <Compile Include="ConstructiveSearcher.cs" />
+    <Compile Include="EitherOrSearcher.cs" />
     <Compile Include="GeneticRoute.cs" />
     <Compile Include="GeneticSearcher.cs" />
     <Compile Include="Graph.cs" />

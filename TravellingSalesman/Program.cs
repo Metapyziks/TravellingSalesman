@@ -82,61 +82,15 @@ namespace TravellingSalesman
             GeneticSearcher genSearcher = new GeneticSearcher();
             genSearcher.Improve( route, true );
 #else
-            Route wfs = RunSearch( graph, new WorstFirstSearcher( new ReversingSearcher() ) );
-            Route bfs = RunSearch( graph, new BestFirstSearcher( new ReversingSearcher() ) );
+            EitherOrSearcher searcher = new EitherOrSearcher(
+                new WorstFirstSearcher( new ReversingSearcher() ),
+                new BestFirstSearcher( new ReversingSearcher() ) );
 
-            Route best = wfs;
+            Route route = RunSearch( graph, searcher );
 
-            if ( wfs.Length < bfs.Length )
-            {
-                Console.ForegroundColor = ConsoleColor.Blue;
-                Console.WriteLine( "WorstFirstSearcher was better!" );
-
-                if ( outDir != null )
-                    File.WriteAllText( outDir + DSC + "TourfileA" + DSC
-                        + "tour" + graph.Name + ".txt", wfs.ToString( true ) );
-            }
-            else
-            {
-                best = bfs;
-
-                if ( bfs.Length < wfs.Length )
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine( "BestFirstSearcher was better!" );
-                }
-                else
-                {
-                    Console.ForegroundColor = ConsoleColor.Magenta;
-                    Console.WriteLine( "Both routes had equal length!" );
-                }
-
-                if ( outDir != null )
-                    File.WriteAllText( outDir + DSC + "TourfileA" + DSC + "tour"
-                        + graph.Name + ".txt", bfs.ToString( true ) );
-            }
-
-            Route gns = RunSearch( graph, new GeneticSearcher(), best );
-
-            if ( gns.Length < best.Length )
-            {
-                Console.ForegroundColor = ConsoleColor.Blue;
-                Console.WriteLine( "GeneticSearcher was better!" );
-            }
-            else if ( gns.Length == best.Length )
-            {
-                Console.ForegroundColor = ConsoleColor.Magenta;
-                Console.WriteLine( "Both routes had equal length!" );
-            }
-            else
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine( "GeneticSearcher was worse!" );
-            }
-
-            if( outDir != null )
-                File.WriteAllText( outDir + DSC + "TourfileB" + DSC + "tour"
-                    + graph.Name + ".txt", gns.ToString( true ) );
+            if ( outDir != null )
+                File.WriteAllText( outDir + DSC + "TourfileA" + DSC
+                    + "tour" + graph.Name + ".txt", route.ToString( true ) );
 #endif
         }
 

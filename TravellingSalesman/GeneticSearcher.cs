@@ -29,7 +29,7 @@ namespace TravellingSalesman
 
             GenePoolCount = 128;
             SelectionCount = 16;
-            CorruptedCount = 4;
+            CorruptedCount = 8;
             GenerationLimit = 1024;
 
             CrossoverSwapProbability = 1.0 / 16.0;
@@ -95,6 +95,9 @@ namespace TravellingSalesman
                         else break;
                     }
                 }
+
+                for ( int i = SelectionCount - CorruptedCount / 2; i < SelectionCount; ++i )
+                    _genePool[i] = new GeneticRoute( route.Graph, _rand );
             }
 
             if ( printProgress )
