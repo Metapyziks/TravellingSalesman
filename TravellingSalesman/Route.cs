@@ -270,7 +270,7 @@ namespace TravellingSalesman
             if ( File.Exists( path ) )
             {
                 Route old = FromFile( Graph, path );
-                if ( old.Length < Length || ( old.Length == Length && Equals( old ) ) )
+                if ( old.Length <= Length )
                     return;
             }
 
