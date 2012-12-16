@@ -8,11 +8,11 @@ namespace TravellingSalesman
 {
     public abstract class ConstructiveSearcher : ISearcher
     {
-        private HillClimbSearcher _improver;
+        public HillClimbSearcher Improver { get; private set; }
 
         public ConstructiveSearcher( HillClimbSearcher improver = null )
         {
-            _improver = improver;
+            Improver = improver;
         }
 
         public Route Search( Graph graph, bool printProgress = false )
@@ -23,11 +23,11 @@ namespace TravellingSalesman
             {
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine( "Starting a new {0} search", GetType().Name );
-                if ( _improver != null )
+                if ( Improver != null )
                 {
                     Console.ForegroundColor = ConsoleColor.DarkGreen;
                     Console.WriteLine( "Search will use {0} to "
-                    + "improve each iteration", _improver.GetType().Name );
+                    + "improve each iteration", Improver.GetType().Name );
                 }
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.Write( "Progress: 0/{0} - 0", graph.Count );
@@ -42,8 +42,8 @@ namespace TravellingSalesman
 
                 lastCount = route.Count;
 
-                if ( _improver != null )
-                    _improver.Improve( route, false );
+                if ( Improver != null )
+                    Improver.Improve( route, false );
 
                 if ( printProgress )
                 {

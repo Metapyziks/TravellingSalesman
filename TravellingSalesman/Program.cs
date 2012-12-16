@@ -107,16 +107,15 @@ namespace TravellingSalesman
             GeneticSearcher genSearcher = new GeneticSearcher();
             genSearcher.Improve( route, true );
 #else
+            bool record = false;
+            bool dayRecord = false;
+
             StochasticHillClimbSearcher searcher = new StochasticHillClimbSearcher( new ReversingSearcher() )
             {
                 Attempts = graph.Count < 17 ? 256 :
-                    //graph.Count < 50 ? 65536 : graph.Count < 100 ? 32768 : graph.Count < 500 ? 8192 : 4096,
-                    128,
+                    graph.Count < 50 ? 65536 : graph.Count < 100 ? 32768 : graph.Count < 500 ? 8192 : 4096,
                 Threads = 8
             };
-
-            bool record = false;
-            bool dayRecord = false;
 
             searcher.BetterRouteFound += ( sender, e ) =>
             {
