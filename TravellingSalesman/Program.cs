@@ -82,7 +82,7 @@ namespace TravellingSalesman
                 new WorstFirstSearcher( new ReversingSearcher() ),
                 new BestFirstSearcher( new ReversingSearcher() ),
                 new AltBestFirstSearcher( new ReversingSearcher() ),
-                new StochasticHillClimbSearcher( new ReversingSearcher() ) { Attempts = 1024 } );
+                new StochasticHillClimbSearcher( new ReversingSearcher() ) { Attempts = 4096 } );
 
             Route route = RunSearch( graph, searcher );
 

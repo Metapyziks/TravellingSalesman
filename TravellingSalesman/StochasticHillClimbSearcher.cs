@@ -43,6 +43,9 @@ namespace TravellingSalesman
             Route best = null;
             for ( int a = 0; a < Attempts; ++a )
             {
+                if ( a % ( Attempts >> 4 ) == 0 && a > 0 )
+                    _rand = new Random( _rand.Next() );
+
                 Route route = Route.CreateRandom( graph, _rand );
                 Searcher.Improve( route );
                 if ( best == null || route.Length < best.Length )
