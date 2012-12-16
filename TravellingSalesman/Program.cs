@@ -63,6 +63,22 @@ namespace TravellingSalesman
             Console.WriteLine( "Loading file {0}", filePath );
             Graph graph = Graph.FromFile( filePath );
             Console.WriteLine( "Graph loaded: {0} has {1} vertices", graph.Name, graph.Count );
+            
+            String savePath = outDir + DSC + "TourfileA" + DSC + "tour" + graph.Name + ".txt";
+            String datePath = Path.GetDirectoryName( savePath ) + Path.DirectorySeparatorChar;
+            datePath += Path.GetFileNameWithoutExtension( savePath ) + ".";
+            datePath += DateTime.Now.ToShortDateString().Replace( '/', '-' );
+            datePath += Path.GetExtension( savePath );
+
+            if ( File.Exists( savePath ) )
+            {
+                Route best = Route.FromFile( graph, savePath );
+                Console.Write( "Record to beat: " );
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write( best.Length );
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine( " ({0})", File.GetLastWriteTime( savePath ) );
+            }
 
 #if DEBUG
             ISearcher searcher;
@@ -78,19 +94,9 @@ namespace TravellingSalesman
             GeneticSearcher genSearcher = new GeneticSearcher();
             genSearcher.Improve( route, true );
 #else
-            EitherOrSearcher searcher = new EitherOrSearcher(
-                new WorstFirstSearcher( new ReversingSearcher() ),
-                new BestFirstSearcher( new ReversingSearcher() ),
-                new AltBestFirstSearcher( new ReversingSearcher() ),
-                new StochasticHillClimbSearcher( new ReversingSearcher() ) { Attempts = 4096, Threads = 8 } );
+            Route route = RunSearch( graph, new StochasticHillClimbSearcher( new ReversingSearcher() )
+                { Attempts = graph.Count < 100 ? 16384 : graph.Count < 500 ? 8192 : 4096, Threads = 8 } );
 
-            Route route = RunSearch( graph, searcher );
-
-            String savePath = outDir + DSC + "TourfileA" + DSC + "tour" + graph.Name + ".txt";
-            String datePath = Path.GetDirectoryName( savePath ) + Path.DirectorySeparatorChar;
-            datePath += Path.GetFileNameWithoutExtension( savePath ) + ".";
-            datePath += DateTime.Now.ToShortDateString().Replace( '/', '-' );
-            datePath += Path.GetExtension( savePath );
 
             if ( route.Save( savePath ) )
             {

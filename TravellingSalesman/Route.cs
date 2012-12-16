@@ -235,6 +235,18 @@ namespace TravellingSalesman
             _length = -1;
         }
 
+        public virtual void Copy( Route route )
+        {
+            _length = route._length;
+            _count = route._count;
+
+            for ( int i = 0; i < Graph.Count; ++i )
+            {
+                _indices[i] = route._indices[i];
+                _added[i] = route._added[i];
+            }
+        }
+
         public virtual void Clear()
         {
             _count = 0;
