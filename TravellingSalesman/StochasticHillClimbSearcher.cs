@@ -6,6 +6,16 @@ using System.Threading;
 
 namespace TravellingSalesman
 {
+    class BetterRouteFoundEventArgs : EventArgs
+    {
+        public readonly Route Route;
+
+        public BetterRouteFoundEventArgs( Route route )
+        {
+            Route = route;
+        }
+    }
+
     class StochasticHillClimbSearcher : ISearcher
     {
         private Random _rand;
@@ -14,6 +24,8 @@ namespace TravellingSalesman
 
         public int Attempts { get; set; }
         public int Threads { get; set; }
+
+        public event EventHandler<BetterRouteFoundEventArgs> BetterRouteFound;
 
         public StochasticHillClimbSearcher( HillClimbSearcher searcher, int seed = 0 )
         {
@@ -51,7 +63,21 @@ namespace TravellingSalesman
             Func<bool> next = () =>
             {
                 lock ( this )
-                    return attempt++ < Attempts;
+                {
+                    if ( attempt < Attempts )
+                    {
+                        ++attempt;
+                        return true;
+                    }
+
+                    return false;
+                }
+            };
+
+            Func<bool> hasNext = () =>
+            {
+                lock ( this )
+                    return attempt < Attempts;
             };
 
             Func<bool> ended = () =>
@@ -76,7 +102,7 @@ namespace TravellingSalesman
             {
                 exit();
 
-                while ( !next() && !ended() )
+                while ( !hasNext() && !ended() )
                     Thread.Yield();
 
                 if ( !ended() )
@@ -94,26 +120,37 @@ namespace TravellingSalesman
                 {
                     if ( best == null || route.Length < best.Length )
                     {
-                        best = route;
+                        best = new Route( route );
                         attempt = 0;
+
+                        if ( BetterRouteFound != null )
+                            BetterRouteFound( this, new BetterRouteFoundEventArgs( route ) );
                     }
+                    else if ( attempt % ( Attempts >> 4 ) == 0 )
+                        _rand = new Random();
 
                     if ( printProgress )
                     {
                         Console.CursorLeft = 10;
-                        Console.Write( "{0}/{1} - {2}    ", attempt + 1, Attempts, best.Length );
+                        Console.Write( "{0}/{1} - {2}    ", attempt, Attempts, best.Length );
                     }
                 }
             };
 
             ThreadStart loop = () =>
             {
+                Route route = new Route( graph );
+
                 for (;;)
                 {
                     while ( next() )
                     {
-                        Route route = Route.CreateRandom( graph, _rand );
-                        Searcher.Improve( route );
+                        route.Clear();
+                        for ( int i = 0; i < graph.Count; ++i )
+                        {
+                            route.AddEnd( _rand.Next( i, graph.Count ) );
+                            Searcher.Improve( route );
+                        }
                         compare( route );
                     }
 

@@ -1,4 +1,4 @@
-Sun 12/16/12  05:12:55 PM
+Sun 12/16/12  05:37:11 PM
 
 directory: Properties ...
 error: no sets of tour-files are present
@@ -13,9 +13,9 @@ SAfile017.txt: good (length of tour is 1444)
 SAfile021.txt: good (length of tour is 2549)
 SAfile026.txt: good (length of tour is 1473)
 SAfile042.txt: good (length of tour is 1187)
-SAfile048.txt: good (length of tour is 12242)
+SAfile048.txt: good (length of tour is 12180)
 SAfile058.txt: good (length of tour is 25395)
-SAfile175.txt: good (length of tour is 21429)
+SAfile175.txt: good (length of tour is 21408)
 SAfile180.txt: good (length of tour is 1950)
 SAfile535.txt: good (length of tour is 48591)
 TourfileB...
@@ -45,11 +45,11 @@ SAfile026.txt: best tour has length 1473
 SAfile026.txt winners : gvnj58
 SAfile042.txt: best tour has length 1187
 SAfile042.txt winners : gvnj58
-SAfile048.txt: best tour has length 12242
+SAfile048.txt: best tour has length 12180
 SAfile048.txt winners : gvnj58
 SAfile058.txt: best tour has length 25395
 SAfile058.txt winners : gvnj58
-SAfile175.txt: best tour has length 21429
+SAfile175.txt: best tour has length 21408
 SAfile175.txt winners : gvnj58
 SAfile180.txt: best tour has length 1950
 SAfile180.txt winners : gvnj58

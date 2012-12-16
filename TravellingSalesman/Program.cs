@@ -70,16 +70,27 @@ namespace TravellingSalesman
             datePath += DateTime.Now.ToShortDateString().Replace( '/', '-' );
             datePath += Path.GetExtension( savePath );
 
+            Route best = null;
             if ( File.Exists( savePath ) )
             {
-                Route best = Route.FromFile( graph, savePath );
+                best = Route.FromFile( graph, savePath );
                 Console.Write( "Record to beat: " );
                 Console.ForegroundColor = ConsoleColor.White;
                 Console.Write( best.Length );
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine( " ({0})", File.GetLastWriteTime( savePath ) );
+                Console.WriteLine( " ({0})", File.GetLastWriteTime( savePath ).ToShortDateString() );
             }
-
+            
+            Route dayBest = null;
+            if ( File.Exists( datePath ) )
+            {
+                dayBest = Route.FromFile( graph, datePath );
+                Console.Write( "Today's record: " );
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write( best.Length );
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine( " ({0})", File.GetLastWriteTime( datePath ).ToShortTimeString() );
+            }
 #if DEBUG
             ISearcher searcher;
             Route route;
@@ -94,11 +105,34 @@ namespace TravellingSalesman
             GeneticSearcher genSearcher = new GeneticSearcher();
             genSearcher.Improve( route, true );
 #else
-            Route route = RunSearch( graph, new StochasticHillClimbSearcher( new ReversingSearcher() )
-                { Attempts = graph.Count < 100 ? 16384 : graph.Count < 500 ? 8192 : 4096, Threads = 8 } );
+            StochasticHillClimbSearcher searcher = new StochasticHillClimbSearcher( new ReversingSearcher() )
+            {
+                Attempts = graph.Count < 100 ? 16384 : graph.Count < 500 ? 8192 : 4096,
+                Threads = 8
+            };
 
+            bool record = false;
+            bool dayRecord = false;
 
-            if ( route.Save( savePath ) )
+            searcher.BetterRouteFound += ( sender, e ) =>
+            {
+                if ( best == null || e.Route.Length < best.Length )
+                {
+                    record = dayRecord = true;
+
+                    e.Route.Save( savePath );
+                    e.Route.Save( datePath );
+                }
+                else if ( dayBest == null || e.Route.Length < dayBest.Length )
+                {
+                    dayRecord = true;
+                    e.Route.Save( datePath );
+                }
+            };
+
+            Route route = RunSearch( graph, searcher );
+
+            if ( record || route.Save( savePath ) )
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine( "****************" );
@@ -106,7 +140,7 @@ namespace TravellingSalesman
                 Console.WriteLine( "****************" );
                 route.Save( datePath );
             }
-            else if ( route.Save( datePath ) )
+            else if ( dayRecord || route.Save( datePath ) )
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine( "================" );
