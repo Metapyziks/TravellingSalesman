@@ -1,4 +1,4 @@
-Sat 12/15/12  10:20:55 PM
+Sun 12/16/12  01:18:58 AM
 
 directory: Properties ...
 error: no sets of tour-files are present
@@ -12,12 +12,12 @@ SAfile012.txt: good (length of tour is 56)
 SAfile017.txt: good (length of tour is 1444)
 SAfile021.txt: good (length of tour is 2549)
 SAfile026.txt: good (length of tour is 1473)
-SAfile042.txt: good (length of tour is 1192)
-SAfile048.txt: good (length of tour is 12492)
+SAfile042.txt: good (length of tour is 1188)
+SAfile048.txt: good (length of tour is 12383)
 SAfile058.txt: good (length of tour is 25395)
-SAfile175.txt: good (length of tour is 21461)
-SAfile180.txt: good (length of tour is 2070)
-SAfile535.txt: good (length of tour is 48720)
+SAfile175.txt: good (length of tour is 21445)
+SAfile180.txt: good (length of tour is 2040)
+SAfile535.txt: good (length of tour is 48700)
 TourfileB...
 SAfile012.txt: no tour-file present
 SAfile017.txt: no tour-file present
@@ -43,15 +43,15 @@ SAfile021.txt: best tour has length 2549
 SAfile021.txt winners : gvnj58
 SAfile026.txt: best tour has length 1473
 SAfile026.txt winners : gvnj58
-SAfile042.txt: best tour has length 1192
+SAfile042.txt: best tour has length 1188
 SAfile042.txt winners : gvnj58
-SAfile048.txt: best tour has length 12492
+SAfile048.txt: best tour has length 12383
 SAfile048.txt winners : gvnj58
 SAfile058.txt: best tour has length 25395
 SAfile058.txt winners : gvnj58
-SAfile175.txt: best tour has length 21461
+SAfile175.txt: best tour has length 21445
 SAfile175.txt winners : gvnj58
-SAfile180.txt: best tour has length 2070
+SAfile180.txt: best tour has length 2040
 SAfile180.txt winners : gvnj58
-SAfile535.txt: best tour has length 48720
+SAfile535.txt: best tour has length 48700
 SAfile535.txt winners : gvnj58
