@@ -265,16 +265,17 @@ namespace TravellingSalesman
             return builder.ToString( 0, builder.Length - 1 );
         }
 
-        public void Save( String path )
+        public bool Save( String path )
         {
             if ( File.Exists( path ) )
             {
                 Route old = FromFile( Graph, path );
                 if ( old.Length <= Length )
-                    return;
+                    return false;
             }
 
             File.WriteAllText( path, ToString( true ) );
+            return true;
         }
 
         public override bool Equals( object obj )

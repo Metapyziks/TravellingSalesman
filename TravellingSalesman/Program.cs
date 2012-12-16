@@ -82,7 +82,7 @@ namespace TravellingSalesman
                 new WorstFirstSearcher( new ReversingSearcher() ),
                 new BestFirstSearcher( new ReversingSearcher() ),
                 new AltBestFirstSearcher( new ReversingSearcher() ),
-                new StochasticHillClimbSearcher( new ReversingSearcher() ) );
+                new StochasticHillClimbSearcher( new ReversingSearcher() ) { Attempts = 1024 } );
 
             Route route = RunSearch( graph, searcher );
 
@@ -92,8 +92,21 @@ namespace TravellingSalesman
             datePath += DateTime.Now.ToShortDateString().Replace( '/', '-' );
             datePath += Path.GetExtension( savePath );
 
-            route.Save( savePath );
-            route.Save( datePath );
+            if ( route.Save( savePath ) )
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine( "****************" );
+                Console.WriteLine( "** NEW RECORD **" );
+                Console.WriteLine( "****************" );
+                route.Save( datePath );
+            }
+            else if ( route.Save( datePath ) )
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine( "================" );
+                Console.WriteLine( "== DAY RECORD ==" );
+                Console.WriteLine( "================" );
+            }
 #endif
         }
 
