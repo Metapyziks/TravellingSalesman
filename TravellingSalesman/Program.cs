@@ -31,7 +31,9 @@ namespace TravellingSalesman
                 : "cityfiles" + DSC + "SAfile535.txt", outDir );
 #else
             SearchDirectory( args.Length > 0 ? args[0] : "cityfiles", outDir );
+            Process.Start( "SAvalidtourcheck.py" );
 #endif
+            Console.WriteLine( "Press any key to exit..." );
             Console.ReadKey();
         }
 
@@ -107,7 +109,9 @@ namespace TravellingSalesman
 #else
             StochasticHillClimbSearcher searcher = new StochasticHillClimbSearcher( new ReversingSearcher() )
             {
-                Attempts = graph.Count < 100 ? 16384 : graph.Count < 500 ? 8192 : 4096,
+                Attempts = graph.Count < 17 ? 256 :
+                    //graph.Count < 50 ? 65536 : graph.Count < 100 ? 32768 : graph.Count < 500 ? 8192 : 4096,
+                    128,
                 Threads = 8
             };
 
