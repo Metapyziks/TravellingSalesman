@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace TravellingSalesman
 {
@@ -12,6 +13,7 @@ namespace TravellingSalesman
         public HillClimbSearcher Searcher { get; private set; }
 
         public int Attempts { get; set; }
+        public int Threads { get; set; }
 
         public StochasticHillClimbSearcher( HillClimbSearcher searcher, int seed = 0 )
         {
@@ -23,6 +25,7 @@ namespace TravellingSalesman
             Searcher = searcher;
 
             Attempts = 256;
+            Threads = 1;
         }
 
         public Route Search( Graph graph, bool printProgress = false )
@@ -30,7 +33,8 @@ namespace TravellingSalesman
             if ( printProgress )
             {
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine( "Starting a new {0} search", GetType().Name );
+                Console.WriteLine( "Starting a new {0} search with {1} thread{2}", GetType().Name,
+                    Threads, Threads != 1 ? "s" : "" );
                 
                 Console.ForegroundColor = ConsoleColor.DarkGreen;
                 Console.WriteLine( "Search will use {0} for each iteration", Searcher.GetType().Name );
@@ -41,25 +45,91 @@ namespace TravellingSalesman
             }
 
             Route best = null;
-            for ( int a = 0; a < Attempts; ++a )
+            int attempt = 0;
+            int exited = 0;
+            
+            Func<bool> next = () =>
             {
-                if ( a % ( Attempts >> 4 ) == 0 && a > 0 )
-                    _rand = new Random( _rand.Next() );
+                lock ( this )
+                    return attempt++ < Attempts;
+            };
 
-                Route route = Route.CreateRandom( graph, _rand );
-                Searcher.Improve( route );
-                if ( best == null || route.Length < best.Length )
-                {
-                    best = route;
-                    a = 0;
-                }
+            Func<bool> ended = () =>
+            {
+                lock( this )
+                    return exited == Threads;
+            };
 
-                if ( printProgress )
+            Action exit = () =>
+            {
+                lock ( this )
+                    ++ exited;
+            };
+
+            Action rejoin = () =>
+            {
+                lock ( this )
+                    --exited;
+            };
+
+            Func<bool> waitForEnd = () =>
+            {
+                exit();
+
+                while ( !next() && !ended() )
+                    Thread.Yield();
+
+                if ( !ended() )
                 {
-                    Console.CursorLeft = 10;
-                    Console.Write( "{0}/{1} - {2}    ", a, Attempts, best.Length );
+                    rejoin();
+                    return false;
                 }
+                else
+                    return true;
+            };
+
+            Action<Route> compare = ( route ) =>
+            {
+                lock ( this )
+                {
+                    if ( best == null || route.Length < best.Length )
+                    {
+                        best = route;
+                        attempt = 0;
+                    }
+
+                    if ( printProgress )
+                    {
+                        Console.CursorLeft = 10;
+                        Console.Write( "{0}/{1} - {2}    ", attempt + 1, Attempts, best.Length );
+                    }
+                }
+            };
+
+            ThreadStart loop = () =>
+            {
+                for (;;)
+                {
+                    while ( next() )
+                    {
+                        Route route = Route.CreateRandom( graph, _rand );
+                        Searcher.Improve( route );
+                        compare( route );
+                    }
+
+                    if ( waitForEnd() )
+                        break;
+                }
+            };
+
+            Thread[] workers = new Thread[Threads - 1];
+            for ( int i = 0; i < workers.Length; ++i )
+            {
+                workers[i] = new Thread( loop );
+                workers[i].Start();
             }
+
+            loop();
 
             if ( printProgress )
             {
