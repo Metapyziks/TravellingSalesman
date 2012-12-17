@@ -21,7 +21,7 @@ namespace TravellingSalesman
             get { return _weights[a, b]; }
         }
 
-        private Graph( String data )
+        protected Graph( String data )
         {
             int index = 0;
 

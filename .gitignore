@@ -111,3 +111,6 @@ TravellingSalesman/*.manifest
 Searcher/*.exe
 Searcher/*.exe.manifest
 Searcher/*.dll
+*.exe
+TravellingSalesman.dll
+*.exe.manifest
