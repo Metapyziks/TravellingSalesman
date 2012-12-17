@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace TravellingSalesman
 {
-    class BetterRouteFoundEventArgs : EventArgs
+    public class BetterRouteFoundEventArgs : EventArgs
     {
         public readonly Route Route;
 
@@ -16,7 +16,7 @@ namespace TravellingSalesman
         }
     }
 
-    class StochasticHillClimbSearcher : ISearcher
+    public class StochasticHillClimbSearcher : ISearcher
     {
         private Random _rand;
 

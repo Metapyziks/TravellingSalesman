@@ -108,3 +108,6 @@ Backup*/
 UpgradeLog*.XML
 TravellingSalesman/*.exe
 TravellingSalesman/*.manifest
+Searcher/*.exe
+Searcher/*.exe.manifest
+Searcher/*.dll
