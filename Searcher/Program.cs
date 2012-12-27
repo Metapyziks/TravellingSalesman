@@ -114,7 +114,7 @@ namespace TravellingSalesman
             {
                 Attempts = graph.Count < 17 ? 256 :
                     graph.Count < 50 ? 65536 : graph.Count < 100 ? 32768 : graph.Count < 500 ? 8192 : 4096,
-                Threads = 8
+                Threads = 4
             };
 
             searcher.BetterRouteFound += ( sender, e ) =>

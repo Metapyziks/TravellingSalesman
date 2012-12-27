@@ -68,9 +68,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="test.png" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="circle.png" />
   </ItemGroup>
   <ItemGroup>

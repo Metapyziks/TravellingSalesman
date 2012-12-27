@@ -16,9 +16,9 @@ namespace Visualiser
     class VisualiserWindow : GameWindow
     {
         private SpriteShader _spriteShader;
-        private BitmapTexture2D _circle;
-        private BitmapTexture2D _connection;
-        private Sprite[] _sprites;
+
+        public PositionalGraph Graph { get; set; }
+
 
         public VisualiserWindow( int width, int height )
             : base( width, height )
@@ -31,25 +31,12 @@ namespace Visualiser
             GL.ClearColor( Color4.CornflowerBlue );
 
             _spriteShader = new SpriteShader( Width, Height );
+        }
 
-            _sprites = new Sprite[]
-            {
-                new Sprite( _circle, 0.25f )
-                {
-                    UseCentreAsOrigin = true,
-                    Position = new Vector2( 400f - 32f, 300f )
-                },
-                new Sprite( _circle, 0.25f )
-                {
-                    UseCentreAsOrigin = true,
-                    Position = new Vector2( 400f + 32f, 300f )
-                },
-                new Sprite( _connection, 0.25f )
-                {
-                    UseCentreAsOrigin = true,
-                    Position = new Vector2( 400f, 300f )
-                }
-            };
+        protected override void OnUpdateFrame( FrameEventArgs e )
+        {
+            if ( Graph != null )
+                Graph.Stablize();
         }
 
         protected override void OnRenderFrame( FrameEventArgs e )
@@ -57,8 +44,8 @@ namespace Visualiser
             GL.Clear( ClearBufferMask.ColorBufferBit );
 
             _spriteShader.Begin();
-            foreach( Sprite sprite in _sprites )
-                sprite.Render( _spriteShader );
+            if ( Graph != null )
+                Graph.Render( _spriteShader );
             _spriteShader.End();
 
             SwapBuffers();
