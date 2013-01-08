@@ -308,5 +308,14 @@ namespace TravellingSalesman
 
             return false;
         }
+
+        public override int GetHashCode()
+        {
+            int hash = 0;
+            for( int i = 0; i < Count; ++ i )
+                hash ^= this[i] + i;
+
+            return hash;
+        }
     }
 }

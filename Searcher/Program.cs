@@ -6,7 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TravellingSalesman
+using TravellingSalesman;
+
+namespace Searcher
 {
     public class Program
     {

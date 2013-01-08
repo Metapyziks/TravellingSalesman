@@ -75,7 +75,7 @@ namespace TravellingSalesman
             {
                 int start = _nextGeneBit;
                 int count = FindBitCount( Graph.Count - Count );
-                int end = ( _nextGeneBit += count );
+                _nextGeneBit += count;
                 int val = 0;
 
                 for ( int b = count, i = start >> 3; b > -8 && i < Genes.Length; b -= 8, ++i )
@@ -102,7 +102,7 @@ namespace TravellingSalesman
         {
             int start = _nextGeneBit;
             int count = FindBitCount( Graph.Count - Count );
-            int end = ( _nextGeneBit += count );
+            _nextGeneBit += count;
             int val = ( Graph.Count - Count - 1 > 0 ) ?
                 (int) ( (long) ( vIndex - Count ) * ( ( 1 << count ) - 1 )
                 / ( Graph.Count - Count - 1 ) ) : 0;

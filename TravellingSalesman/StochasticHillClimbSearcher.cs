@@ -148,7 +148,7 @@ namespace TravellingSalesman
                         route.Clear();
                         for ( int i = 0; i < graph.Count; ++i )
                         {
-                            route.AddEnd( _rand.Next( i, graph.Count ) );
+                            lock(_rand) route.AddEnd( _rand.Next( i, graph.Count ) );
                             Searcher.Improve( route );
                         }
                         compare( route );
