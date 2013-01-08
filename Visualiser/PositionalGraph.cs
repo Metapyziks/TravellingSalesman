@@ -74,8 +74,8 @@ namespace Visualiser
                 for (int j = 0; j < Count; ++j)
                     _ordered[i, j] = orderBuffer[j];
 
-                if (_ordered[i, 0] != i)
-                    throw new Exception("uhh");
+                // if (_ordered[i, 0] != i)
+                //     throw new Exception("uhh");
             }
 
             DeselectVertex();
@@ -150,8 +150,10 @@ namespace Visualiser
             for (int i = 0; i < Count; ++i) {
                 if (i == SelectedVertex) continue;
 
-                for (int j = 1; j < Count; ++j) {
+                for (int j = 0; j < Count; ++j) {
                     int k = _ordered[i, j];
+
+                    if (k == i) continue;
 
                     Vector2 diff = _positions[k] - _positions[i];
 
@@ -164,8 +166,8 @@ namespace Visualiser
 
                     if (k == SelectedVertex)
                         mul *= 4;
-                    else
-                        mul *= (Count - j + 1) / (float) Count;
+                    //else
+                    //    mul *= (Count - j + 1) / (float) Count;
 
                     moves[i] += diff * (curr - dest) * mul;
                 }
