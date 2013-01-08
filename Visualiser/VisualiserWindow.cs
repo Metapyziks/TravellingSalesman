@@ -19,33 +19,51 @@ namespace Visualiser
 
         public PositionalGraph Graph { get; set; }
 
-
-        public VisualiserWindow( int width, int height )
-            : base( width, height )
+        public VisualiserWindow(int width, int height)
+            : base(width, height)
         {
             Title = "Travelling Salesman Visualiser";
         }
 
-        protected override void OnLoad( EventArgs e )
+        protected override void OnLoad(EventArgs e)
         {
-            GL.ClearColor( Color4.CornflowerBlue );
+            GL.ClearColor(Color4.CornflowerBlue);
 
-            _spriteShader = new SpriteShader( Width, Height );
+            _spriteShader = new SpriteShader(Width, Height);
+
+            Mouse.ButtonDown += (sender, me) => {
+                if (Graph != null) {
+                    Graph.SelectedVertex = Graph.GetNearestVertexScreen(new Vector2(me.X, me.Y));
+                }
+            };
+
+            Mouse.ButtonUp += (sender, me) => {
+                if (Graph != null) {
+                    Graph.DeselectVertex();
+                }
+            };
+
+            Mouse.Move += (sender, me) => {
+                if (Graph != null && Graph.SelectedVertex != -1) {
+                    Graph.MoveVertexScreen(Graph.SelectedVertex, new Vector2(me.X, me.Y));
+                }
+            };
         }
 
-        protected override void OnUpdateFrame( FrameEventArgs e )
+        protected override void OnUpdateFrame(FrameEventArgs e)
         {
-            if ( Graph != null )
+            if (Graph != null) {
                 Graph.Stablize();
+            }
         }
 
-        protected override void OnRenderFrame( FrameEventArgs e )
+        protected override void OnRenderFrame(FrameEventArgs e)
         {
-            GL.Clear( ClearBufferMask.ColorBufferBit );
+            GL.Clear(ClearBufferMask.ColorBufferBit);
 
             _spriteShader.Begin();
-            if ( Graph != null )
-                Graph.Render( _spriteShader );
+            if (Graph != null)
+                Graph.Render(_spriteShader);
             _spriteShader.End();
 
             SwapBuffers();

@@ -74,6 +74,10 @@
     <None Include="connection.png" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Searcher\Searcher.csproj">
+      <Project>{7249523a-1e65-4acb-9907-1290206d0e06}</Project>
+      <Name>Searcher</Name>
+    </ProjectReference>
     <ProjectReference Include="..\TravellingSalesman\TravellingSalesman.csproj">
       <Project>{c4d4c2d3-8b73-4cda-8274-dcddf036c65b}</Project>
       <Name>TravellingSalesman</Name>
