@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using TravellingSalesman;
@@ -59,26 +60,19 @@ namespace Searcher
                 route = searcher.Search( graph, !quiet );
                 _stopwatch.Stop();
             }
-            if ( !quiet )
-            {
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine( "Search time: {0}ms", _stopwatch.ElapsedMilliseconds );
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.WriteLine( route.ToString() );
-            }
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine( "Search time: {0}ms", _stopwatch.ElapsedMilliseconds );
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine( route.ToString() );
             return route;
         }
 
         public static void SearchSingle( String filePath, String outDir, bool quiet = false )
         {
-            if ( !quiet )
-            {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine( "Loading file {0}", filePath );
-            }
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine( "Loading file {0}", filePath );
             Graph graph = Graph.FromFile( filePath );
-            if ( !quiet )
-                Console.WriteLine( "Graph loaded: {0} has {1} vertices", graph.Name, graph.Count );
+            Console.WriteLine( "Graph loaded: {0} has {1} vertices", graph.Name, graph.Count );
             
             String savePath = outDir + DSC + "TourfileA" + DSC + "tour" + graph.Name + ".txt";
             String datePath = Path.GetDirectoryName( savePath ) + Path.DirectorySeparatorChar;
@@ -90,28 +84,22 @@ namespace Searcher
             if ( File.Exists( savePath ) )
             {
                 best = Route.FromFile( graph, savePath );
-                if ( !quiet )
-                {
-                    Console.Write( "Record to beat: " );
-                    Console.ForegroundColor = ConsoleColor.White;
-                    Console.Write( best.Length );
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine( " ({0})", File.GetLastWriteTime( savePath ).ToShortDateString() );
-                }
+                Console.Write( "Record to beat: " );
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write( best.Length );
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine( " ({0})", File.GetLastWriteTime( savePath ).ToShortDateString() );
             }
             
             Route dayBest = null;
             if ( File.Exists( datePath ) )
             {
                 dayBest = Route.FromFile( graph, datePath );
-                if ( !quiet )
-                {
-                    Console.Write( "Today's record: " );
-                    Console.ForegroundColor = ConsoleColor.White;
-                    Console.Write( best.Length );
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine( " ({0})", File.GetLastWriteTime( datePath ).ToShortTimeString() );
-                }
+                Console.Write( "Today's record: " );
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write( best.Length );
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine( " ({0})", File.GetLastWriteTime( datePath ).ToShortTimeString() );
             }
 #if DEBUG
             ISearcher searcher;
@@ -121,11 +109,8 @@ namespace Searcher
             _stopwatch.Restart();
             route = searcher.Search( graph, !quiet );
             _stopwatch.Stop();
-            if ( !quiet )
-            {
-                Console.WriteLine( "Search time: {0}ms", _stopwatch.ElapsedMilliseconds );
-                Console.WriteLine( route.ToString() );
-            }
+            Console.WriteLine( "Search time: {0}ms", _stopwatch.ElapsedMilliseconds );
+            Console.WriteLine( route.ToString() );
             GeneticSearcher genSearcher = new GeneticSearcher();
             genSearcher.Improve( route, !quiet );
 #else
@@ -136,7 +121,7 @@ namespace Searcher
             {
                 Attempts = graph.Count < 17 ? 256 :
                     graph.Count < 50 ? 65536 : graph.Count < 100 ? 32768 : graph.Count < 500 ? 8192 : 4096,
-                Threads = 4
+                Threads = 1
             };
 
             searcher.BetterRouteFound += ( sender, e ) =>
@@ -157,38 +142,40 @@ namespace Searcher
 
             Route route = RunSearch( graph, searcher, null, quiet );
 
-            if ( !quiet )
+            if ( record || route.Save( savePath ) )
             {
-                if ( record || route.Save( savePath ) )
-                {
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine( "****************" );
-                    Console.WriteLine( "** NEW RECORD **" );
-                    Console.WriteLine( "****************" );
-                    route.Save( datePath );
-                }
-                else if ( dayRecord || route.Save( datePath ) )
-                {
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine( "================" );
-                    Console.WriteLine( "== DAY RECORD ==" );
-                    Console.WriteLine( "================" );
-                }
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine( "****************" );
+                Console.WriteLine( "** NEW RECORD **" );
+                Console.WriteLine( "****************" );
+                route.Save( datePath );
+            }
+            else if ( dayRecord || route.Save( datePath ) )
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine( "================" );
+                Console.WriteLine( "== DAY RECORD ==" );
+                Console.WriteLine( "================" );
             }
 #endif
         }
 
         public static void SearchDirectory( String directory, String outDir, bool quiet = false )
         {
-            if ( !quiet )
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine( "Loading directory {0}", directory );
+            do
             {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine( "Loading directory {0}", directory );
+                if ( quiet )
+                    Console.WriteLine("Starting batch at {0}", DateTime.Now.ToString());
+
+                foreach( String filePath in Directory.EnumerateFiles( directory ) )
+                    SearchSingle( filePath, outDir, quiet );
+                
+                if ( quiet )
+                    Thread.Sleep( 60000 );
             }
-            foreach( String filePath in Directory.EnumerateFiles( directory ) )
-                SearchSingle( filePath, outDir, quiet );
-            if ( !quiet )
-                Console.ForegroundColor = ConsoleColor.White;
+            while( quiet );
         }
     }
 }
