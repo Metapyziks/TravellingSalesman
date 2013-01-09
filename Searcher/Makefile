@@ -17,4 +17,4 @@ TARGET = ../Searcher.exe
 release:
 	rm -f $(TARGET)
 	$(CSC) -langversion:$(CSVERSION) $(SRC) -r:$(LIB) -d:$(DEF) \
-		-t:exe -out:$(TARGET)
+		-t:exe -out:$(TARGET) -optimize+

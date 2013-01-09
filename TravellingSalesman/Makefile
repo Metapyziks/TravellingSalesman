@@ -15,4 +15,4 @@ TARGET = ../TravellingSalesman.dll
 release:
 	rm -f $(TARGET)
 	$(CSC) -langversion:$(CSVERSION) $(SRC) -d:$(DEF) \
-		-t:library -out:$(TARGET)
+		-t:library -out:$(TARGET) -optimize+
