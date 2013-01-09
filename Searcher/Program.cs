@@ -100,7 +100,7 @@ namespace Searcher
                 dayBest = Route.FromFile( graph, datePath );
                 Console.Write( "Today's record: " );
                 Console.ForegroundColor = ConsoleColor.White;
-                Console.Write( best.Length );
+                Console.Write( dayBest.Length );
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine( " ({0})", File.GetLastWriteTime( datePath ).ToShortTimeString() );
             }
