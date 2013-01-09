@@ -11,6 +11,8 @@ cd $DIR
 binpath=Searcher.exe
 logpath=console.log
 
+threads=2
+
 MONO="$(pidof mono)"
 if [ $MONO ]
 then
@@ -19,7 +21,7 @@ then
 fi
 
 echo "Starting searcher"
-nohup $monopath $binpath cityfiles gvnj58 quiet >$logpath 2>&1 &
+nohup $monopath $binpath cityfiles gvnj58 quiet $threads >$logpath 2>&1 &
 
 echo "Leaving $DIR"
 cd $OLDDIR
