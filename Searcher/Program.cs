@@ -1,12 +1,16 @@
 ﻿using System;
+using System.Globalization;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
-namespace TravellingSalesman
+using TravellingSalesman;
+
+namespace Searcher
 {
     public class Program
     {
@@ -15,6 +19,8 @@ namespace TravellingSalesman
 
         public static void Main( string[] args )
         {
+            Thread.CurrentThread.CurrentCulture = new CultureInfo( "en-GB" );
+
             String outDir = ( args.Length > 1 ? args[ 1 ] : null ) ?? "gvnj58";
 
             if ( !Directory.Exists( outDir ) )
@@ -26,30 +32,35 @@ namespace TravellingSalesman
             if ( !Directory.Exists( outDir + DSC + "TourfileB" ) )
                 Directory.CreateDirectory( outDir + DSC + "TourfileB" );
 
+            bool quiet = args.Length > 2 && args[2] == "quiet";
+
 #if DEBUG
             SearchSingle( args.Length > 0 ? args[0]
                 : "cityfiles" + DSC + "SAfile535.txt", outDir );
 #else
-            SearchDirectory( args.Length > 0 ? args[0] : "cityfiles", outDir );
-            Process.Start( "SAvalidtourcheck.py" );
+            SearchDirectory( args.Length > 0 ? args[0] : "cityfiles", outDir, quiet );
+            // Process.Start( "SAvalidtourcheck.py" );
 #endif
-            Console.WriteLine( "Press any key to exit..." );
-            Console.ReadKey();
+            if ( !quiet )
+            {
+                Console.WriteLine( "Press any key to exit..." );
+                Console.ReadKey();
+            }
         }
 
-        private static Route RunSearch( Graph graph, ISearcher searcher, Route route = null )
+        private static Route RunSearch( Graph graph, ISearcher searcher, Route route = null, bool quiet = false )
         {
             if ( searcher is HillClimbSearcher && route != null )
             {
                 route = new Route( route );
                 _stopwatch.Restart();
-                ( (HillClimbSearcher) searcher ).Improve( route, true );
+                ( (HillClimbSearcher) searcher ).Improve( route, !quiet );
                 _stopwatch.Stop();
             }
             else
             {
                 _stopwatch.Restart();
-                route = searcher.Search( graph, true );
+                route = searcher.Search( graph, !quiet );
                 _stopwatch.Stop();
             }
             Console.ForegroundColor = ConsoleColor.Green;
@@ -59,7 +70,7 @@ namespace TravellingSalesman
             return route;
         }
 
-        public static void SearchSingle( String filePath, String outDir )
+        public static void SearchSingle( String filePath, String outDir, bool quiet = false )
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine( "Loading file {0}", filePath );
@@ -99,13 +110,12 @@ namespace TravellingSalesman
             
             searcher = new BestFirstSearcher( new ReversingSearcher() );
             _stopwatch.Restart();
-            route = searcher.Search( graph, true );
+            route = searcher.Search( graph, !quiet );
             _stopwatch.Stop();
             Console.WriteLine( "Search time: {0}ms", _stopwatch.ElapsedMilliseconds );
             Console.WriteLine( route.ToString() );
-
             GeneticSearcher genSearcher = new GeneticSearcher();
-            genSearcher.Improve( route, true );
+            genSearcher.Improve( route, !quiet );
 #else
             bool record = false;
             bool dayRecord = false;
@@ -114,7 +124,7 @@ namespace TravellingSalesman
             {
                 Attempts = graph.Count < 17 ? 256 :
                     graph.Count < 50 ? 65536 : graph.Count < 100 ? 32768 : graph.Count < 500 ? 8192 : 4096,
-                Threads = 4
+                Threads = 1
             };
 
             searcher.BetterRouteFound += ( sender, e ) =>
@@ -133,7 +143,7 @@ namespace TravellingSalesman
                 }
             };
 
-            Route route = RunSearch( graph, searcher );
+            Route route = RunSearch( graph, searcher, null, quiet );
 
             if ( record || route.Save( savePath ) )
             {
@@ -153,13 +163,22 @@ namespace TravellingSalesman
 #endif
         }
 
-        public static void SearchDirectory( String directory, String outDir )
+        public static void SearchDirectory( String directory, String outDir, bool quiet = false )
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine( "Loading directory {0}", directory );
-            foreach( String filePath in Directory.EnumerateFiles( directory ) )
-                SearchSingle( filePath, outDir );
-            Console.ForegroundColor = ConsoleColor.White;
+            do
+            {
+                if ( quiet )
+                    Console.WriteLine("Starting batch at {0}", DateTime.Now.ToString());
+
+                foreach( String filePath in Directory.EnumerateFiles( directory ) )
+                    SearchSingle( filePath, outDir, quiet );
+                
+                if ( quiet )
+                    Thread.Sleep( 60000 );
+            }
+            while( quiet );
         }
     }
 }
