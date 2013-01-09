@@ -20,16 +20,15 @@ namespace Visualiser
         public PositionalGraph Graph { get; set; }
 
         public VisualiserWindow(int width, int height)
-            : base(width, height)
-        {
-            Title = "Travelling Salesman Visualiser";
-        }
+            : base(width, height) { }
 
         protected override void OnLoad(EventArgs e)
         {
             GL.ClearColor(Color4.CornflowerBlue);
 
             _spriteShader = new SpriteShader(Width, Height);
+
+            Title = "Travelling Salesman Visualiser - " + Graph.CurrentRoute.Length;
 
             Mouse.ButtonDown += (sender, me) => {
                 if (Graph != null && (me.Button == OpenTK.Input.MouseButton.Left || Graph.SelectedVertex == -1)) {
@@ -40,7 +39,8 @@ namespace Visualiser
                         int i = Graph.CurrentRoute.IndexOf(Graph.SelectedVertex);
                         int j = Graph.CurrentRoute.IndexOf(nearest);
 
-                        Graph.CurrentRoute.Swap(i, j);
+                        Graph.CurrentRoute.Splice(i, j);
+                        Title = "Travelling Salesman Visualiser - " + Graph.CurrentRoute.Length;
                     }
                     Graph.DeselectVertex();
                 }

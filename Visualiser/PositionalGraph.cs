@@ -55,7 +55,10 @@ namespace Visualiser
         protected PositionalGraph(String data)
             : base(data)
         {
-            ForceMul = 32f / Count;
+            // 12  -> 4  / 12  -> 0.33
+            // 180 -> 16 / 180 -> 0.09
+            // 535 -> 32 / 535 -> 0.06
+            ForceMul = (float) Math.Sqrt(Count) * 1.4f / Count;
 
             LoadSprites();
 
@@ -69,7 +72,8 @@ namespace Visualiser
             _ordered = new int[Count, Count];
 
             for (int i = 0; i < Count; ++i) {
-                Array.Sort(orderBuffer, Comparer<int>.Create((x, y) => this[i, x] == this[i, y] ? x - y : this[i, x] - this[i, y]));
+                Array.Sort(orderBuffer, Comparer<int>.Create((x, y) => x == i ? int.MinValue
+                    : y == i ? int.MaxValue :  this[i, x] - this[i, y]));
 
                 for (int j = 0; j < Count; ++j)
                     _ordered[i, j] = orderBuffer[j];
@@ -157,7 +161,7 @@ namespace Visualiser
 
                     Vector2 diff = _positions[k] - _positions[i];
 
-                    float dest = this[i, k] * 16f;
+                    float dest = this[i, k];
                     float curr = diff.Length;
 
                     diff.Normalize();
@@ -165,7 +169,7 @@ namespace Visualiser
                     float mul = .5f * ForceMul;
 
                     if (k == SelectedVertex)
-                        mul *= 4;
+                        mul *= 8f;
                     //else
                     //    mul *= (Count - j + 1) / (float) Count;
 
@@ -217,7 +221,7 @@ namespace Visualiser
                     _sConnSprite.Position = ((mid - CameraPos) * Scale) + centre;
                     Color4 clr = _sConnSprite.Colour;
                     clr.G = 1f - OpenTKTools.Tools.Clamp(Math.Abs(len - this[i, j])
-                        / (this[i, j] * 64), 0f, 1f);
+                        / (this[i, j] * 4f), 0f, 1f);
                     clr.B = clr.G;
                     _sConnSprite.Colour = clr;
                     _sConnSprite.Width = Scale * len;
