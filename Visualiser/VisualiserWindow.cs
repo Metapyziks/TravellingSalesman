@@ -32,19 +32,28 @@ namespace Visualiser
             _spriteShader = new SpriteShader(Width, Height);
 
             Mouse.ButtonDown += (sender, me) => {
-                if (Graph != null) {
+                if (Graph != null && (me.Button == OpenTK.Input.MouseButton.Left || Graph.SelectedVertex == -1)) {
                     Graph.SelectedVertex = Graph.GetNearestVertexScreen(new Vector2(me.X, me.Y));
+                } else if (Graph.SelectedVertex != -1 && me.Button == OpenTK.Input.MouseButton.Right) {
+                    int nearest = Graph.GetNearestVertexScreen(new Vector2(me.X, me.Y));
+                    if (nearest != Graph.SelectedVertex) {
+                        int i = Graph.CurrentRoute.IndexOf(Graph.SelectedVertex);
+                        int j = Graph.CurrentRoute.IndexOf(nearest);
+
+                        Graph.CurrentRoute.Swap(i, j);
+                    }
+                    Graph.DeselectVertex();
                 }
             };
 
             Mouse.ButtonUp += (sender, me) => {
-                if (Graph != null) {
+                if (Graph != null && me.Button == OpenTK.Input.MouseButton.Left) {
                     Graph.DeselectVertex();
                 }
             };
 
             Mouse.Move += (sender, me) => {
-                if (Graph != null && Graph.SelectedVertex != -1) {
+                if (Graph != null && Graph.SelectedVertex != -1 && Mouse[OpenTK.Input.MouseButton.Left]) {
                     Graph.MoveVertexScreen(Graph.SelectedVertex, new Vector2(me.X, me.Y));
                 }
             };

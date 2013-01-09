@@ -116,7 +116,7 @@ namespace TravellingSalesman
                 route.Insert( route.VIndexOf( clone[i] ), i );
         }
 
-        protected override bool Iterate( Route route )
+        public override bool Iterate( Route route )
         {
             throw new NotImplementedException();
         }

@@ -5,12 +5,16 @@ using System.Text;
 
 namespace TravellingSalesman
 {
-    class EitherOrSearcher : CompositeSearcher
+    class EitherOrSearcher : ISearcher
     {
-        public EitherOrSearcher( params ISearcher[] searchers )
-            : base( searchers ) { }
+        public ISearcher[] Searchers { get; private set; }
 
-        public override Route Search( Graph graph, bool printProgress = false )
+        public EitherOrSearcher( params ISearcher[] searchers )
+        {
+            Searchers = searchers;
+        }
+
+        public Route Search( Graph graph, bool printProgress = false )
         {
             if ( printProgress )
             {

@@ -69,13 +69,13 @@ namespace Visualiser
             _ordered = new int[Count, Count];
 
             for (int i = 0; i < Count; ++i) {
-                Array.Sort(orderBuffer, Comparer<int>.Create((x, y) => this[i, x] - this[i, y]));
+                Array.Sort(orderBuffer, Comparer<int>.Create((x, y) => this[i, x] == this[i, y] ? x - y : this[i, x] - this[i, y]));
 
                 for (int j = 0; j < Count; ++j)
                     _ordered[i, j] = orderBuffer[j];
 
-                // if (_ordered[i, 0] != i)
-                //     throw new Exception("uhh");
+                if (_ordered[i, 0] != i)
+                    throw new Exception("uhh");
             }
 
             DeselectVertex();

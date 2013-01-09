@@ -8,7 +8,7 @@ namespace TravellingSalesman
 {
     public class ReversingSearcher : HillClimbSearcher
     {
-        protected override bool Iterate( Route route )
+        public override bool Iterate( Route route )
         {
             int last = route.Length;
             int bestStart = 0;

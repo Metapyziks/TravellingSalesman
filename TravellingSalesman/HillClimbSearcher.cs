@@ -43,6 +43,6 @@ namespace TravellingSalesman
             }
         }
 
-        protected abstract bool Iterate( Route route );
+        public abstract bool Iterate( Route route );
     }
 }
