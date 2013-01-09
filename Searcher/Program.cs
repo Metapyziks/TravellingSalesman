@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -18,6 +19,8 @@ namespace Searcher
 
         public static void Main( string[] args )
         {
+            Thread.CurrentThread.CurrentCulture = new CultureInfo( "en-GB" );
+
             String outDir = ( args.Length > 1 ? args[ 1 ] : null ) ?? "gvnj58";
 
             if ( !Directory.Exists( outDir ) )
