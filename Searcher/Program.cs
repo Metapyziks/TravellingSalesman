@@ -138,6 +138,7 @@ namespace Searcher
 
                     Process.Start( "git", string.Format( "add {0}", savePath ) );
                     Process.Start( "git", string.Format( "commit -m \"[AUTO] New all time record for {0}\"", graph.Name ) );
+                    Process.Start( "git", "push origin master" );
                 }
                 else if ( dayBest == null || e.Route.Length < dayBest.Length )
                 {
