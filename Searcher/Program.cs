@@ -124,7 +124,7 @@ namespace Searcher
             {
                 Attempts = graph.Count < 17 ? 256 :
                     graph.Count < 50 ? 65536 : graph.Count < 100 ? 32768 : graph.Count < 500 ? 8192 : 4096,
-                Threads = 1
+                Threads = 4
             };
 
             searcher.BetterRouteFound += ( sender, e ) =>
@@ -135,6 +135,9 @@ namespace Searcher
 
                     e.Route.Save( savePath );
                     e.Route.Save( datePath );
+
+                    Process.Start( "git", string.Format( "add {0}", savePath ) );
+                    Process.Start( "git", string.Format( "commit -m \"[AUTO] New all time record for {0}\"", graph.Name ) );
                 }
                 else if ( dayBest == null || e.Route.Length < dayBest.Length )
                 {
