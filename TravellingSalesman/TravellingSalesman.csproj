@@ -49,7 +49,7 @@
     <Compile Include="AltBestFirstSearcher.cs" />
     <Compile Include="BestestFirstSearch.cs" />
     <Compile Include="BestFirstSearcher.cs" />
-    <Compile Include="CompositeSearcher.cs" />
+    <Compile Include="ChainedHillClimbSearcher.cs" />
     <Compile Include="ConstructiveSearcher.cs" />
     <Compile Include="EitherOrSearcher.cs" />
     <Compile Include="GeneticRoute.cs" />
@@ -61,6 +61,7 @@
     <Compile Include="ReversingSearcher.cs" />
     <Compile Include="Route.cs" />
     <Compile Include="StochasticHillClimbSearcher.cs" />
+    <Compile Include="SwappingSearcher.cs" />
     <Compile Include="Tools.cs" />
     <Compile Include="WorstFirstSearcher.cs" />
   </ItemGroup>

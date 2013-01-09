@@ -155,6 +155,15 @@ namespace TravellingSalesman
             return _indices[index];
         }
 
+        public int IndexOf( int index )
+        {
+            for (int i = 0; i < Count; ++i)
+                if (_indices[i] == index)
+                    return i;
+
+            return -1;
+        }
+
         public int VIndexOf( int index )
         {
             for ( int i = Count; i < Graph.Count; ++i )
@@ -215,6 +224,34 @@ namespace TravellingSalesman
                 return vIndex;
 
             return _indices.FindIndexStatistic( vIndex, Count, Graph.Count - Count, _nextComparer );
+        }
+
+        public virtual void Swap( int i, int j )
+        {
+            _indices[i] ^= _indices[j];
+            _indices[j] ^= _indices[i];
+            _indices[i] ^= _indices[j];
+
+            _length = -1;
+        }
+
+        public virtual void Splice( int i, int j )
+        {
+            if ( i == j ) return;
+
+            int val = _indices[i];
+            for ( int k = i; ; ++k )
+            {
+                int k0 = k % Count;
+                int k1 = ( k + 1 ) % Count;
+                _indices[k0] = _indices[k1];
+
+                if ( k0 == j )
+                    break;
+            }
+            _indices[j] = val;
+
+            _length = -1;
         }
 
         public virtual void Reverse()
