@@ -104,7 +104,7 @@ namespace Searcher
                 dayBest = Route.FromFile( graph, datePath );
                 Console.Write( "Today's record: " );
                 Console.ForegroundColor = ConsoleColor.White;
-                Console.Write( best.Length );
+                Console.Write( dayBest.Length );
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine( " ({0})", File.GetLastWriteTime( datePath ).ToShortTimeString() );
             }
@@ -139,6 +139,10 @@ namespace Searcher
 
                     e.Route.Save( savePath );
                     e.Route.Save( datePath );
+
+                    Process.Start( "git", string.Format( "add {0}", savePath ) );
+                    Process.Start( "git", string.Format( "commit -m \"[AUTO] New all time record for {0}\"", graph.Name ) );
+                    Process.Start( "git", "push origin master" );
                 }
                 else if ( dayBest == null || e.Route.Length < dayBest.Length )
                 {
