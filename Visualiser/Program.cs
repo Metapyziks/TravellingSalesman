@@ -11,6 +11,8 @@ namespace Visualiser
 {
     class Program
     {
+        static readonly char DSC = Path.DirectorySeparatorChar;
+
         static void Main(string[] args)
         {
             if (args.Length == 0) {
@@ -18,8 +20,8 @@ namespace Visualiser
                 // return;
 
                 args = new string[] {
-                    "cityfiles\\SAfile535.txt",
-                    "gvnj58\\TourfileA\\tourSAfile535.txt"
+                    "cityfiles" + DSC + "SAfile535.txt",
+                    "gvnj58" + DSC + "TourfileA" + DSC + "tourSAfile535.txt"
                 };
             }
 
