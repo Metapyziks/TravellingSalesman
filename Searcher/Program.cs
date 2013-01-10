@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -124,7 +124,8 @@ namespace Searcher
             bool record = false;
             bool dayRecord = false;
 
-            StochasticHillClimbSearcher searcher = new StochasticHillClimbSearcher( new ReversingSearcher() )
+            StochasticHillClimbSearcher searcher = new StochasticHillClimbSearcher(
+                new ChainedHillClimbSearcher( new ReversingSearcher(), new SwappingSearcher() ) )
             {
                 Attempts = graph.Count < 17 ? 256 :
                     graph.Count < 50 ? 65536 : graph.Count < 100 ? 32768 : graph.Count < 500 ? 8192 : 4096,
@@ -140,9 +141,13 @@ namespace Searcher
                     e.Route.Save( savePath );
                     e.Route.Save( datePath );
 
-                    Process.Start( "git", string.Format( "add {0}", savePath ) );
-                    Process.Start( "git", string.Format( "commit -m \"[AUTO] New all time record for {0}\"", graph.Name ) );
-                    Process.Start( "git", "push origin linux" );
+                    try {
+                        Process.Start("git", string.Format("add {0}", savePath));
+                        Process.Start("git", string.Format("commit -m \"[AUTO] New all time record for {0}\"", graph.Name));
+                        Process.Start("git", "push origin linux");
+                    } catch {
+
+                    }
                 }
                 else if ( dayBest == null || e.Route.Length < dayBest.Length )
                 {

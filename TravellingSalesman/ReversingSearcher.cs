@@ -10,7 +10,6 @@ namespace TravellingSalesman
     {
         public override bool Iterate( Route route )
         {
-            int last = route.Length;
             int bestStart = 0;
             int bestCount = 0;
             int bestScore = 0;
