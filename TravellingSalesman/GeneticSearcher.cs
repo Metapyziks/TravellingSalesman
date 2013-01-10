@@ -27,9 +27,9 @@ namespace TravellingSalesman
         {
             _rand = new Random( seed );
 
-            GenePoolCount = 128;
-            SelectionCount = 16;
-            CorruptedCount = 8;
+            GenePoolCount = 32;
+            SelectionCount = 8;
+            CorruptedCount = 2;
             GenerationLimit = 1024;
 
             CrossoverSwapProbability = 1.0 / 16.0;
@@ -121,7 +121,7 @@ namespace TravellingSalesman
             throw new NotImplementedException();
         }
 
-        protected virtual void Crossover( byte[] dest, byte[] parentA, byte[] parentB )
+        protected virtual void Crossover(ushort[] dest, ushort[] parentA, ushort[] parentB)
         {
             bool readFromA = _rand.NextDouble() < 0.5;
             for ( int i = 0; i < parentA.Length; ++i )
@@ -133,13 +133,16 @@ namespace TravellingSalesman
             }
         }
 
-        protected virtual void Mutate( byte[] genes )
+        protected virtual void Mutate(ushort[] genes)
         {
             double flipChance = BitFlipChance / genes.Length;
 
-            for ( int i = 0; i < genes.Length; ++i ) for ( int b = 0; b < 8; ++b )
-                if ( _rand.NextDouble() < flipChance )
-                    genes[i] ^= (byte) ( 1 << b );
+            for (int i = 0; i < genes.Length; ++i) {
+                ushort flip = 0;
+                while (_rand.NextDouble() < flipChance && ++flip < 65535) // just in case... :P
+                    ++flip;
+                genes[i] ^= flip;
+            }
         }
 
         protected virtual double FindFitness( Route route )
