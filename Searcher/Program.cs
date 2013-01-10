@@ -17,6 +17,8 @@ namespace Searcher
         private static readonly char DSC = Path.DirectorySeparatorChar;
         private static readonly Stopwatch _stopwatch = new Stopwatch();
 
+        private static int _threads;
+
         public static void Main( string[] args )
         {
             Thread.CurrentThread.CurrentCulture = new CultureInfo( "en-GB" );
@@ -33,6 +35,8 @@ namespace Searcher
                 Directory.CreateDirectory( outDir + DSC + "TourfileB" );
 
             bool quiet = args.Length > 2 && args[2] == "quiet";
+
+            _threads = args.Length > 3 ? int.Parse(args[3]) : 2;
 
 #if DEBUG
             SearchSingle( args.Length > 0 ? args[0]
@@ -125,7 +129,7 @@ namespace Searcher
             {
                 Attempts = graph.Count < 17 ? 256 :
                     graph.Count < 50 ? 65536 : graph.Count < 100 ? 32768 : graph.Count < 500 ? 8192 : 4096,
-                Threads = 4
+                Threads = _threads
             };
 
             searcher.BetterRouteFound += ( sender, e ) =>
