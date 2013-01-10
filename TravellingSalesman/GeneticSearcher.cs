@@ -9,114 +9,142 @@ namespace TravellingSalesman
     {
         private Random _rand;
 
+        private GeneticRoute[] _selected;
         private GeneticRoute[] _genePool;
 
         public int GenePoolCount { get; set; }
         public int SelectionCount { get; set; }
-        public int CorruptedCount { get; set; }
+        public int OffspringCount { get; set; }
         public int GenerationLimit { get; set; }
 
+        public double InitialGreediness { get; set; }
+        public double SelectionQuality { get; set; }
         public double CrossoverSwapProbability { get; set; }
+        public double MutationChance { get; set; }
         public double BitFlipChance { get; set; }
-        public double BadSelectionChance { get; set; }
 
         public GeneticSearcher()
-            : this( 0x743bc365 ) { }
+            : this(0x743bc365) { }
 
-        public GeneticSearcher( int seed )
+        public GeneticSearcher(int seed)
         {
-            _rand = new Random( seed );
+            _rand = new Random(seed);
 
-            GenePoolCount = 32;
-            SelectionCount = 8;
-            CorruptedCount = 2;
-            GenerationLimit = 1024;
+            GenePoolCount = 512;
+            SelectionCount = 2;
+            OffspringCount = 2;
+            GenerationLimit = int.MaxValue;
 
+            InitialGreediness = 1.0 / 23.0;
+            SelectionQuality = 1.0 / 5.0;
             CrossoverSwapProbability = 1.0 / 16.0;
+            MutationChance = 1.0 / 8192.0;
             BitFlipChance = 1.0 / 2.0;
-            BadSelectionChance = 1.0 / 32.0;
         }
 
-        public override void Improve( Route route, bool printProgress = false )
+        private bool IsSelected(int i, int j)
+        {
+            Route route = _genePool[j];
+            while (--i >= 0) {
+                if (_selected[i] == route) return true;
+            }
+
+            return false;
+        }
+
+        public override void Improve(Route route, bool printProgress = false)
         {
             _genePool = new GeneticRoute[GenePoolCount];
+            _selected = new GeneticRoute[SelectionCount];
 
-            if ( printProgress )
-            {
+            if (printProgress) {
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine( "Starting a new {0} search", GetType().Name );
-                Console.Write( "Progress: 0/{0} - 0", GenerationLimit );
+                Console.WriteLine("Starting a new {0} search", GetType().Name);
+                Console.WriteLine("Creating initial population...");
+                Console.Write("Progress: 0/{0}", GenePoolCount);
                 Console.ForegroundColor = ConsoleColor.White;
             }
 
-            _genePool[0] = new GeneticRoute( route );
+            ReversingSearcher improver = new ReversingSearcher();
 
-            for ( int i = 1; i < GenePoolCount; ++i )
-                _genePool[i] = new GeneticRoute( route.Graph, _rand );
-
-            for ( int g = 0; g < GenerationLimit; ++g )
-            {
-                if ( printProgress )
-                {
+            for (int i = 0; i < GenePoolCount; ++i) {
+                _genePool[i] = new GeneticRoute(route.Graph, _rand, InitialGreediness);
+                Route clone = new Route(_genePool[i]);
+                improver.Improve(clone, false);
+                _genePool[i].Fitness = clone.Length;
+                if (printProgress) {
                     Console.CursorLeft = 10;
-                    Console.Write( "{0}/{1} - {2}:{3}   ", g, GenerationLimit,
-                        _genePool[0].Length, _genePool[SelectionCount - CorruptedCount - 1].Length );
+                    Console.Write("{0}/{1}", i + 1, GenePoolCount);
+                }
+            }
+
+            if (printProgress) {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine();
+                Console.WriteLine("Initial population created");
+                Console.WriteLine("Running generations...");
+                Console.Write("Progress: 0/{0} - 0", GenerationLimit);
+                Console.ForegroundColor = ConsoleColor.White;
+            }
+
+            for (int g = 0; g < GenerationLimit; ++g) {
+                if (printProgress) {
+                    Console.CursorLeft = 10;
+                    Console.Write("{0}/{1} - {2}   ", g + 1, GenerationLimit, _genePool[0].Fitness);
                 }
 
-                for ( int i = SelectionCount; i < GenePoolCount; ++i )
-                {
-                    GeneticRoute child = _genePool[i];
-                    GeneticRoute parentA = _genePool[_rand.Next( SelectionCount / 2 )];
-                    GeneticRoute parentB = _genePool[_rand.Next( SelectionCount / 2, SelectionCount )];
-                    Crossover( child.Genes, parentA.Genes, parentB.Genes );
-
-                    Mutate( child.Genes );
-                    child.UpdateIndicesFromGenes();
+                for (int i = 0; i < SelectionCount; ++i) {
+                    int j = 0;
+                    while (IsSelected(i, j) || _rand.NextDouble() >= SelectionQuality) {
+                        j = (j + 1) % GenePoolCount;
+                    }
+                    _selected[i] = _genePool[j];
                 }
 
-                for ( int i = SelectionCount; i < GenePoolCount; ++i )
-                {
-                    GeneticRoute curnt = _genePool[i];
-                    int l = i;
-                    for ( int s = SelectionCount - 1; s >= 0; --s )
-                    {
-                        GeneticRoute other = _genePool[s];
-                        if ( other.Length > curnt.Length
-                            || ( s >= SelectionCount - CorruptedCount && _rand.NextDouble() < BadSelectionChance ) )
-                        {
-                            _genePool[s] = curnt;
-                            _genePool[l] = other;
+                for (int i = 0; i < OffspringCount; ++i) {
+                    GeneticRoute parentA = _selected[0]; // TODO: fix for different 
+                    GeneticRoute parentB = _selected[1]; //       selection counts
+                    ushort[] genes = new ushort[route.Count];
+                    Crossover(genes, parentA.Genes, parentB.Genes);
+                    Mutate(genes);
+                    GeneticRoute child = new GeneticRoute(route.Graph, genes);
+                    Route clone = new Route(child);
+                    improver.Improve(clone, false);
+                    child.Fitness = clone.Length;
 
-                            l = s;
+                    int l = -1;
+                    for (int j = GenePoolCount - 1; j >= 0; --j) {
+                        GeneticRoute other = _genePool[j];
+                        if (other.Fitness > child.Fitness) {
+                            _genePool[j] = child;
 
-                            if( s < SelectionCount - CorruptedCount )
+                            if(l > -1)
+                                _genePool[l] = other;
+
+                            if (j == 0)
                                 g = 0;
-                        }
-                        else break;
+
+                            l = j;
+                        } else break;
                     }
                 }
-
-                for ( int i = SelectionCount - CorruptedCount / 2; i < SelectionCount; ++i )
-                    _genePool[i] = new GeneticRoute( route.Graph, _rand );
             }
 
-            if ( printProgress )
-            {
+            if (printProgress) {
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine( "\nGenetic search complete" );
+                Console.WriteLine("\nGenetic search complete");
                 Console.ForegroundColor = ConsoleColor.White;
             }
 
-            Route clone = new Route( _genePool[0] );
-
-            new ReversingSearcher().Improve( clone, false );
+            Route best = new Route(_genePool[0]);
+            improver.Improve(best);
 
             route.Clear();
-            for ( int i = 0; i < clone.Count; ++i )
-                route.Insert( route.VIndexOf( clone[i] ), i );
+            for (int i = 0; i < best.Count; ++i)
+                route.Insert(route.VIndexOf(best[i]), i);
         }
 
-        public override bool Iterate( Route route )
+        public override bool Iterate(Route route)
         {
             throw new NotImplementedException();
         }
@@ -124,30 +152,27 @@ namespace TravellingSalesman
         protected virtual void Crossover(ushort[] dest, ushort[] parentA, ushort[] parentB)
         {
             bool readFromA = _rand.NextDouble() < 0.5;
-            for ( int i = 0; i < parentA.Length; ++i )
-            {
-                dest[i] = ( readFromA ? parentA[i] : parentB[i] );
+            for (int i = 0; i < parentA.Length; ++i) {
+                dest[i] = (readFromA ? parentA[i] : parentB[i]);
 
-                if ( _rand.NextDouble() < CrossoverSwapProbability )
+                if (_rand.NextDouble() < CrossoverSwapProbability)
                     readFromA = !readFromA;
             }
         }
 
         protected virtual void Mutate(ushort[] genes)
         {
-            double flipChance = BitFlipChance / genes.Length;
-
             for (int i = 0; i < genes.Length; ++i) {
                 ushort flip = 0;
-                while (_rand.NextDouble() < flipChance && ++flip < 65535) // just in case... :P
+                while (_rand.NextDouble() < MutationChance && ++flip < 65535) // just in case... :P
                     ++flip;
                 genes[i] ^= flip;
             }
         }
 
-        protected virtual double FindFitness( Route route )
+        protected virtual double FindFitness(Route route)
         {
-            return route.Length * (double) Math.Abs( route.Count - route.Graph.Count ) / route.Graph.Count;
+            return route.Length * (double) Math.Abs(route.Count - route.Graph.Count) / route.Graph.Count;
         }
     }
 }

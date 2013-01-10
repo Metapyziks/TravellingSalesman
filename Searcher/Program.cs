@@ -36,11 +36,11 @@ namespace Searcher
 
             bool quiet = args.Length > 2 && args[2] == "quiet";
 
-            _threads = args.Length > 3 ? int.Parse(args[3]) : 2;
+            _threads = args.Length > 3 ? int.Parse(args[3]) : 4;
 
 #if DEBUG
             SearchSingle( args.Length > 0 ? args[0]
-                : "cityfiles" + DSC + "SAfile535.txt", outDir );
+                : "cityfiles" + DSC + "SAfile175.txt", outDir );
 #else
             SearchDirectory( args.Length > 0 ? args[0] : "cityfiles", outDir, quiet );
             // Process.Start( "SAvalidtourcheck.py" );
@@ -123,9 +123,9 @@ namespace Searcher
 #else
             bool record = false;
             bool dayRecord = false;
-
-            StochasticHillClimbSearcher searcher = new StochasticHillClimbSearcher(
-                new ChainedHillClimbSearcher( new ReversingSearcher(), new SwappingSearcher() ) )
+            
+            /*
+            var searcher = new StochasticHillClimbSearcher(new ReversingSearcher())
             {
                 Attempts = graph.Count < 17 ? 256 :
                     graph.Count < 50 ? 65536 : graph.Count < 100 ? 32768 : graph.Count < 500 ? 8192 : 4096,
@@ -141,6 +141,7 @@ namespace Searcher
                     e.Route.Save( savePath );
                     e.Route.Save( datePath );
 
+/ *
                     try {
                         Process.Start("git", string.Format("add {0}", savePath));
                         Process.Start("git", string.Format("commit -m \"[AUTO] New all time record for {0}\"", graph.Name));
@@ -148,12 +149,19 @@ namespace Searcher
                     } catch {
 
                     }
+* / 
                 }
                 else if ( dayBest == null || e.Route.Length < dayBest.Length )
                 {
                     dayRecord = true;
                     e.Route.Save( datePath );
                 }
+            };
+            */
+
+            var searcher = new GeneticSearcher() {
+                GenerationLimit = graph.Count < 17 ? 256 :
+                    graph.Count < 50 ? 65536 : graph.Count < 100 ? 32768 : graph.Count < 500 ? 8192 : 4096
             };
 
             Route route = RunSearch( graph, searcher, null, quiet );

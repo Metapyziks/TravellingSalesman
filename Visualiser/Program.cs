@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using TravellingSalesman;
@@ -15,12 +16,13 @@ namespace Visualiser
 
         static void Main(string[] args)
         {
+            Directory.SetCurrentDirectory(System.AppDomain.CurrentDomain.BaseDirectory);
+
             if (args.Length == 0) {
                 // Console.WriteLine("usage: Visualiser.exe <cityfile>");
                 // return;
 
                 args = new string[] {
-                    "cityfiles" + DSC + "SAfile535.txt",
                     "gvnj58" + DSC + "TourfileA" + DSC + "tourSAfile535.txt"
                 };
             }
@@ -30,34 +32,26 @@ namespace Visualiser
                 return;
             }
 
-            VisualiserWindow window = new VisualiserWindow(800, 600);
-            window.Graph = PositionalGraph.FromFile(args[0]);
+            Match match = Regex.Match(args[0], "SAfile[0-9]{3}");
 
-            Thread thread = null;
-
-            if (args.Length > 1 && File.Exists(args[1])) {
-                window.Graph.CurrentRoute = Route.FromFile(window.Graph, args[1]);
-                window.Graph.GuessStartPositions();
-            } else {
-                StochasticHillClimbSearcher searcher = new StochasticHillClimbSearcher(new ReversingSearcher());
-                searcher.Attempts = Int32.MaxValue;
-                searcher.Threads = 2;
-
-                thread = new Thread(() => {
-                    searcher.BetterRouteFound += (sender, e) => {
-                        window.Graph.CurrentRoute = new Route(e.Route);
-                        window.Graph.GuessStartPositions();
-                    };
-                    searcher.Search(window.Graph, false);
-                });
-
-                thread.Start();
+            if (!match.Success) {
+                Console.WriteLine("invalid tour filename", args[0]);
+                return;
             }
+
+            String graphPath = "cityfiles" + DSC + match.Value + ".txt";
+
+            var graph = PositionalGraph.FromFile(graphPath);
+            var route = Route.FromFile(graph, args[0]);
+
+            var window = new VisualiserWindow(800, 600);
+            window.Graph = graph;
+
+            window.Graph.CurrentRoute = route;
+            window.Graph.GuessStartPositions();
 
             window.Run();
             window.Dispose();
-
-            if (thread != null) thread.Abort();
         }
     }
 }

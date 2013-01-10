@@ -8,13 +8,15 @@ namespace TravellingSalesman
     public class GeneticRoute : Route
     {
         public ushort[] Genes { get; private set; }
+        public int Fitness { get; set; }
 
-        public GeneticRoute(Graph graph, Random rand)
+        public GeneticRoute(Graph graph, Random rand, double greediness)
             : base(graph)
         {
             Genes = new ushort[graph.Count];
-            for (int i = 0; i < Genes.Length; ++i)
-                Genes[i] = (ushort) rand.Next(65536);
+            for (int i = 0; i < Genes.Length; ++i) {
+                Genes[i] = (ushort) rand.Next(0, (Genes.Length - i));
+            }
 
             UpdateIndicesFromGenes();
         }
