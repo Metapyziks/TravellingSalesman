@@ -6,6 +6,16 @@ using System.Text;
 
 namespace TravellingSalesman
 {
+    public class AntStepEventArgs : EventArgs
+    {
+        public readonly int[,] Paths;
+
+        public AntStepEventArgs(int[,] paths)
+        {
+            Paths = paths;
+        }
+    }
+
     public class AntColonySearcher<T> : ISearcher
         where T : Ant
     {
@@ -13,6 +23,7 @@ namespace TravellingSalesman
         public int StepCount { get; set; }
 
         public event EventHandler<BetterRouteFoundEventArgs> BetterRouteFound;
+        public event EventHandler<AntStepEventArgs> AntStep;
 
         public AntColonySearcher()
         {
@@ -37,25 +48,37 @@ namespace TravellingSalesman
 
             var ants = new T[AntCount];
 
-            var args = new Object[] { graph, 0 };
-            for (int i = 0; i < AntCount; ++i) {
-                args[1] = i % graph.Count;
-                ants[i] = (T) ctor.Invoke(args);
-            }
+            var paths = new int[AntCount, 2];
 
+            var args = new Object[] { graph, 0 };
             var phms = new double[graph.Count, graph.Count];
             Route best = null;
             int bestLength = 0, tours = 0;
             for (int step = 0; step < StepCount; ++step) {
                 for (int a = AntCount - 1; a >= 0; --a) {
-                    int cost = ants[a].Step(phms, tours);
+                    T ant = ants[a];
+                    if (ant == null) {
+                        args[1] = a % graph.Count;
+                        ants[a] = (T) ctor.Invoke(args);
+                        break;
+                    }
+
+                    paths[a, 0] = ant.CurrentVertex;
+                    int cost = ant.Step(phms, tours);
+                    paths[a, 1] = ant.CurrentVertex;
                     if (cost > -1 && (best == null || cost < bestLength)) {
-                        best = new Route(graph, ants[a].History, graph.Count);
+                        ant.FortifyLastRoute(phms);
+                        best = new Route(graph, ant.History, graph.Count);
                         bestLength = cost;
-                        BetterRouteFound(this, new BetterRouteFoundEventArgs(best));
+                        if (BetterRouteFound != null)
+                            BetterRouteFound(this, new BetterRouteFoundEventArgs(best));
                         ++tours;
+                        step = -1;
                     }
                 }
+
+                if (AntStep != null)
+                    AntStep(this, new AntStepEventArgs(paths));
 
                 if (printProgress) {
                     Console.CursorLeft = 10;

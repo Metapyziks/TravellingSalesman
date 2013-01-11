@@ -35,6 +35,8 @@ namespace Visualiser
 
         public int SelectedVertex { get; set; }
 
+        public int[,] HighlightedEdges { get; set; }
+
         private void LoadSprites()
         {
             if (_sNodeSprite != null && _sConnSprite != null)
@@ -81,6 +83,8 @@ namespace Visualiser
                 if (_ordered[i, 0] != i)
                     throw new Exception("uhh");
             }
+
+            HighlightedEdges = null;
 
             DeselectVertex();
             GuessStartPositions();
@@ -206,6 +210,28 @@ namespace Visualiser
             for (int i = 0; i < Count; ++i) {
                 _sNodeSprite.Position = ((_positions[i] - CameraPos) * Scale) + centre;
                 _sNodeSprite.Render(shader);
+            }
+
+            if (HighlightedEdges != null) {
+                _sConnSprite.Height = 4f;
+                for (int k = (HighlightedEdges.Length >> 1) - 1; k >= 0; --k ) {
+                    int i = HighlightedEdges[k, 0];
+                    int j = HighlightedEdges[k, 1];
+
+                    Vector2 diff = _positions[j] - _positions[i];
+                    Vector2 mid = (_positions[i] + _positions[j]) * 0.5f;
+                    float len = diff.Length;
+                    float ang = (float) Math.Atan2(diff.Y, diff.X);
+                    _sConnSprite.Position = ((mid - CameraPos) * Scale) + centre;
+                    Color4 clr = _sConnSprite.Colour;
+                    clr.G = 1f - OpenTKTools.Tools.Clamp(Math.Abs(len - this[i, j])
+                        / (this[i, j] * 4f), 0f, 1f);
+                    clr.B = clr.G;
+                    _sConnSprite.Colour = clr;
+                    _sConnSprite.Width = Scale * len;
+                    _sConnSprite.Rotation = ang;
+                    _sConnSprite.Render(shader);
+                }
             }
 
             if (CurrentRoute != null) {

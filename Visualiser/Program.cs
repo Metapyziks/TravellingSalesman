@@ -44,14 +44,31 @@ namespace Visualiser
             var graph = PositionalGraph.FromFile(graphPath);
             var route = Route.FromFile(graph, args[0]);
 
+
             var window = new VisualiserWindow(800, 600);
             window.Graph = graph;
 
             window.Graph.CurrentRoute = route;
             window.Graph.GuessStartPositions();
+            
+            var searcher = new AntColonySearcher<Ant>();
+            var thread = new Thread(() => {
+                searcher.BetterRouteFound += (sender, e) => {
+                    graph.CurrentRoute = e.Route;
+                    window.UpdateTitle();
+                };
+                searcher.AntStep += (sender, e) => {
+                    graph.HighlightedEdges = e.Paths;
+                };
+                searcher.Search(graph, false);
+            });
+
+            thread.Start();
 
             window.Run();
             window.Dispose();
+
+            thread.Abort();
         }
     }
 }

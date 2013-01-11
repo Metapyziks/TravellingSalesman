@@ -31,9 +31,6 @@ namespace TravellingSalesman
 
         private void EndCurrentTour(double[,] pheromones)
         {
-            for (int i = _stepNo - 1; i >= 0; --i) {
-                pheromones[History[i], History[(i + 1) % _stepNo]] += 1d / _cost;
-            }
             _stepNo = 0;
         }
          
@@ -45,6 +42,7 @@ namespace TravellingSalesman
                 _visited[i] = false;
             }
 
+            _visited[CurrentVertex] = true;
             _cost = 0;
             _stepNo = 1;
         }
@@ -59,6 +57,8 @@ namespace TravellingSalesman
             Debug.Assert(!HasVisited(next), "Can't revisit a vertex in the current tour");
             _visited[next] = true;
             History[_stepNo++] = CurrentVertex = next;
+            pheromones[CurrentVertex, next] += 1d / Graph[CurrentVertex, next];
+            pheromones[next, CurrentVertex] += 1d;
 
             if (_stepNo > 1) {
                 _cost += Graph[History[_stepNo - 2], CurrentVertex];
@@ -73,6 +73,17 @@ namespace TravellingSalesman
             return -1;
         }
 
+        public void FortifyLastRoute(double[,] pheromones)
+        {
+            double add = (double) Graph.Count / _cost;
+            int last = 0;
+            for (int i = Graph.Count - 1; i >= 0; --i) {
+                pheromones[History[i], History[last]] += add;
+                pheromones[History[last], History[i]] += add;
+                last = i;
+            }
+        }
+
         protected bool HasVisited(int vertex)
         {
             return _visited[vertex];
@@ -80,7 +91,7 @@ namespace TravellingSalesman
 
         protected virtual double FindScore(int vertex, double[,] pheromones, int tours, double phWeight)
         {
-            return Math.Sqrt(pheromones[CurrentVertex, vertex] / tours * phWeight + 1d)
+            return (pheromones[CurrentVertex, vertex] / (tours + 1) * phWeight + 1d)
                 / (Graph[CurrentVertex, vertex]);
         }
 
@@ -88,7 +99,7 @@ namespace TravellingSalesman
         {
             int b = -1;
             double s = 0;
-            double phWeight = Rand.NextDouble();
+            double phWeight = Rand.NextDouble(); // / (tours + 1);
             for (int i = Graph.Count - 1; i >= 0; --i) {
                 if (HasVisited(i)) continue;
                 double score = FindScore(i, pheromones, tours, phWeight);

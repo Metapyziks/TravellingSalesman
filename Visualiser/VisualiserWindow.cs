@@ -22,13 +22,18 @@ namespace Visualiser
         public VisualiserWindow(int width, int height)
             : base(width, height) { }
 
+        public void UpdateTitle()
+        {
+            Title = "Travelling Salesman Visualiser - " + Graph.CurrentRoute.Length;
+        }
+
         protected override void OnLoad(EventArgs e)
         {
             GL.ClearColor(Color4.CornflowerBlue);
 
             _spriteShader = new SpriteShader(Width, Height);
 
-            Title = "Travelling Salesman Visualiser - " + Graph.CurrentRoute.Length;
+            UpdateTitle();
 
             Mouse.ButtonDown += (sender, me) => {
                 if (Graph != null && (me.Button == OpenTK.Input.MouseButton.Left || Graph.SelectedVertex == -1)) {
@@ -40,7 +45,7 @@ namespace Visualiser
                         int j = Graph.CurrentRoute.IndexOf(nearest);
 
                         Graph.CurrentRoute.Splice(i, j);
-                        Title = "Travelling Salesman Visualiser - " + Graph.CurrentRoute.Length;
+                        UpdateTitle();
                     }
                     Graph.DeselectVertex();
                 }
