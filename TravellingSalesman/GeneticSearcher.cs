@@ -17,7 +17,6 @@ namespace TravellingSalesman
         public int OffspringCount { get; set; }
         public int GenerationLimit { get; set; }
 
-        public double InitialGreediness { get; set; }
         public double SelectionQuality { get; set; }
         public double CrossoverSwapProbability { get; set; }
         public double MutationChance { get; set; }
@@ -35,10 +34,9 @@ namespace TravellingSalesman
             OffspringCount = 2;
             GenerationLimit = int.MaxValue;
 
-            InitialGreediness = 1.0 / 23.0;
-            SelectionQuality = 1.0 / 5.0;
-            CrossoverSwapProbability = 1.0 / 16.0;
-            MutationChance = 1.0 / 8192.0;
+            SelectionQuality = 4.0 / 5.0;
+            CrossoverSwapProbability = 1.0 / 2.0;
+            MutationChance = 4.0 / 5.0;
             BitFlipChance = 1.0 / 2.0;
         }
 
@@ -67,8 +65,10 @@ namespace TravellingSalesman
 
             ReversingSearcher improver = new ReversingSearcher();
 
-            for (int i = 0; i < GenePoolCount; ++i) {
-                _genePool[i] = new GeneticRoute(route.Graph, _rand, InitialGreediness);
+            _genePool[0] = new GeneticRoute(route);
+            _genePool[0].Fitness = route.Length;
+            for (int i = 1; i < GenePoolCount; ++i) {
+                _genePool[i] = new GeneticRoute(route.Graph, _rand);
                 Route clone = new Route(_genePool[i]);
                 improver.Improve(clone, false);
                 _genePool[i].Fitness = clone.Length;
@@ -155,7 +155,7 @@ namespace TravellingSalesman
             for (int i = 0; i < parentA.Length; ++i) {
                 dest[i] = (readFromA ? parentA[i] : parentB[i]);
 
-                if (_rand.NextDouble() < CrossoverSwapProbability)
+                if (_rand.NextDouble() < CrossoverSwapProbability / dest.Length)
                     readFromA = !readFromA;
             }
         }
@@ -164,8 +164,8 @@ namespace TravellingSalesman
         {
             for (int i = 0; i < genes.Length; ++i) {
                 ushort flip = 0;
-                while (_rand.NextDouble() < MutationChance && ++flip < 65535) // just in case... :P
-                    ++flip;
+                if (_rand.NextDouble() < MutationChance / genes.Length)
+                    while (++flip < 65535 && _rand.NextDouble() < MutationChance);
                 genes[i] ^= flip;
             }
         }

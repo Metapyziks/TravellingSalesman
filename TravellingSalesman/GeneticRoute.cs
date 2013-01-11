@@ -10,7 +10,7 @@ namespace TravellingSalesman
         public ushort[] Genes { get; private set; }
         public int Fitness { get; set; }
 
-        public GeneticRoute(Graph graph, Random rand, double greediness)
+        public GeneticRoute(Graph graph, Random rand)
             : base(graph)
         {
             Genes = new ushort[graph.Count];

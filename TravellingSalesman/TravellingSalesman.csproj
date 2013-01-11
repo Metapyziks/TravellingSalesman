@@ -47,8 +47,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AltBestFirstSearcher.cs" />
+    <Compile Include="Ant.cs" />
+    <Compile Include="AntColonySearcher.cs" />
     <Compile Include="BestestFirstSearch.cs" />
     <Compile Include="BestFirstSearcher.cs" />
+    <Compile Include="BetterFoundEventArgs.cs" />
     <Compile Include="ChainedHillClimbSearcher.cs" />
     <Compile Include="ConstructiveSearcher.cs" />
     <Compile Include="EitherOrSearcher.cs" />

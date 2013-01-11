@@ -108,28 +108,14 @@ namespace Searcher
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine( " ({0})", File.GetLastWriteTime( datePath ).ToShortTimeString() );
             }
-#if DEBUG
-            ISearcher searcher;
-            Route route;
-            
-            searcher = new BestFirstSearcher( new ReversingSearcher() );
-            _stopwatch.Restart();
-            route = searcher.Search( graph, !quiet );
-            _stopwatch.Stop();
-            Console.WriteLine( "Search time: {0}ms", _stopwatch.ElapsedMilliseconds );
-            Console.WriteLine( route.ToString() );
-            GeneticSearcher genSearcher = new GeneticSearcher();
-            genSearcher.Improve( route, !quiet );
-#else
             bool record = false;
             bool dayRecord = false;
             
-            /*
-            var searcher = new StochasticHillClimbSearcher(new ReversingSearcher())
+            var searcher = new AntColonySearcher<Ant>()
             {
-                Attempts = graph.Count < 17 ? 256 :
+                StepCount = graph.Count < 17 ? 256 :
                     graph.Count < 50 ? 65536 : graph.Count < 100 ? 32768 : graph.Count < 500 ? 8192 : 4096,
-                Threads = _threads
+                AntCount = 1024
             };
 
             searcher.BetterRouteFound += ( sender, e ) =>
@@ -141,7 +127,7 @@ namespace Searcher
                     e.Route.Save( savePath );
                     e.Route.Save( datePath );
 
-/ *
+/*
                     try {
                         Process.Start("git", string.Format("add {0}", savePath));
                         Process.Start("git", string.Format("commit -m \"[AUTO] New all time record for {0}\"", graph.Name));
@@ -149,7 +135,7 @@ namespace Searcher
                     } catch {
 
                     }
-* / 
+*/ 
                 }
                 else if ( dayBest == null || e.Route.Length < dayBest.Length )
                 {
@@ -157,12 +143,13 @@ namespace Searcher
                     e.Route.Save( datePath );
                 }
             };
-            */
 
+            /*
             var searcher = new GeneticSearcher() {
                 GenerationLimit = graph.Count < 17 ? 256 :
                     graph.Count < 50 ? 65536 : graph.Count < 100 ? 32768 : graph.Count < 500 ? 8192 : 4096
             };
+            */
 
             Route route = RunSearch( graph, searcher, null, quiet );
 
@@ -181,7 +168,6 @@ namespace Searcher
                 Console.WriteLine( "== DAY RECORD ==" );
                 Console.WriteLine( "================" );
             }
-#endif
         }
 
         public static void SearchDirectory( String directory, String outDir, bool quiet = false )
