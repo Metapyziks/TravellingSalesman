@@ -110,8 +110,13 @@ namespace Searcher
             }
             bool record = false;
             bool dayRecord = false;
+<<<<<<< HEAD
             
+            var searcher = new AntColonySearcher<Ant>()
+=======
+
             StochasticHillClimbSearcher searcher = new StochasticHillClimbSearcher( new ReversingSearcher() )
+>>>>>>> 5012d9204012c1950d35d918572119e07ebe1a8b
             {
                 StepCount = graph.Count < 17 ? 256 :
                     graph.Count < 50 ? 65536 : graph.Count < 100 ? 32768 : graph.Count < 500 ? 8192 : 4096,
@@ -126,7 +131,10 @@ namespace Searcher
 
                     e.Route.Save( savePath );
                     e.Route.Save( datePath );
-/*
+<<<<<<< HEAD
+
+=======
+>>>>>>> 5012d9204012c1950d35d918572119e07ebe1a8b
 /*
                     try {
                         Process.Start("git", string.Format("add {0}", savePath));
@@ -135,7 +143,11 @@ namespace Searcher
                     } catch {
 
                     }
+<<<<<<< HEAD
+*/ 
+=======
 */
+>>>>>>> 5012d9204012c1950d35d918572119e07ebe1a8b
                 }
                 else if ( dayBest == null || e.Route.Length < dayBest.Length )
                 {
