@@ -114,3 +114,5 @@ Searcher/*.dll
 *.exe
 TravellingSalesman.dll
 *.exe.manifest
+*.aux
+*.pdf

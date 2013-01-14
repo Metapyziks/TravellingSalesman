@@ -113,9 +113,9 @@ namespace Searcher
             
             StochasticHillClimbSearcher searcher = new StochasticHillClimbSearcher( new ReversingSearcher() )
             {
-                StepCount = graph.Count < 17 ? 256 :
+                Attempts = graph.Count < 17 ? 256 :
                     graph.Count < 50 ? 65536 : graph.Count < 100 ? 32768 : graph.Count < 500 ? 8192 : 4096,
-                AntCount = 1024
+                Threads = _threads
             };
 
             searcher.BetterRouteFound += ( sender, e ) =>
