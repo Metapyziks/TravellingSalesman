@@ -48,13 +48,17 @@ namespace Visualiser
             var window = new VisualiserWindow(800, 600);
             window.Graph = graph;
 
-            window.Graph.CurrentRoute = route;
-            window.Graph.GuessStartPositions();
-            
-            var searcher = new AntColonySearcher<Ant>();
+            // window.Graph.CurrentRoute = route;
+            // window.Graph.GuessStartPositions();
+
+            var searcher = new AntColonySearcher<Ant>() {
+                AntCount = 4096,
+                StepCount = Int32.MaxValue
+            };
             var thread = new Thread(() => {
                 searcher.BetterRouteFound += (sender, e) => {
                     graph.CurrentRoute = e.Route;
+                    window.Graph.GuessStartPositions();
                     window.UpdateTitle();
                 };
                 searcher.AntStep += (sender, e) => {

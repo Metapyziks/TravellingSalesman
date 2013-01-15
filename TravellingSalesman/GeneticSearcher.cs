@@ -22,6 +22,8 @@ namespace TravellingSalesman
         public double MutationChance { get; set; }
         public double BitFlipChance { get; set; }
 
+        public event EventHandler<BetterRouteFoundEventArgs> BetterRouteFound;
+
         public GeneticSearcher()
             : this(0x743bc365) { }
 
@@ -69,9 +71,10 @@ namespace TravellingSalesman
             _genePool[0].Fitness = route.Length;
             for (int i = 1; i < GenePoolCount; ++i) {
                 _genePool[i] = new GeneticRoute(route.Graph, _rand);
-                Route clone = new Route(_genePool[i]);
-                improver.Improve(clone, false);
-                _genePool[i].Fitness = clone.Length;
+                _genePool[i].Fitness = _genePool[i].Length;
+                //Route clone = new Route(_genePool[i]);
+                //improver.Improve(clone, false);
+                //_genePool[i].Fitness = clone.Length;
                 if (printProgress) {
                     Console.CursorLeft = 10;
                     Console.Write("{0}/{1}", i + 1, GenePoolCount);
@@ -108,9 +111,10 @@ namespace TravellingSalesman
                     Crossover(genes, parentA.Genes, parentB.Genes);
                     Mutate(genes);
                     GeneticRoute child = new GeneticRoute(route.Graph, genes);
-                    Route clone = new Route(child);
-                    improver.Improve(clone, false);
-                    child.Fitness = clone.Length;
+                    //Route clone = new Route(child);
+                    //improver.Improve(clone, false);
+                    //child.Fitness = clone.Length;
+                    child.Fitness = child.Length;
 
                     int l = -1;
                     for (int j = GenePoolCount - 1; j >= 0; --j) {
@@ -118,11 +122,13 @@ namespace TravellingSalesman
                         if (other.Fitness > child.Fitness) {
                             _genePool[j] = child;
 
-                            if(l > -1)
+                            if (l > -1)
                                 _genePool[l] = other;
 
-                            if (j == 0)
+                            if (j == 0) {
+                                BetterRouteFound(this, new BetterRouteFoundEventArgs(child));
                                 g = 0;
+                            }
 
                             l = j;
                         } else break;
@@ -163,10 +169,19 @@ namespace TravellingSalesman
         protected virtual void Mutate(ushort[] genes)
         {
             for (int i = 0; i < genes.Length; ++i) {
-                ushort flip = 0;
-                if (_rand.NextDouble() < MutationChance / genes.Length)
-                    while (++flip < 65535 && _rand.NextDouble() < MutationChance);
-                genes[i] ^= flip;
+                if (_rand.NextDouble() < MutationChance / genes.Length) {
+                    ushort flip = 0;
+                    while (++flip < 65535 && _rand.NextDouble() < MutationChance) ;
+                    if (_rand.NextDouble() < 0.5) {
+                        genes[i] += flip;
+                    } else if (flip < genes[i]) {
+                        genes[i] -= flip;
+                    } else {
+                        genes[i] = 0;
+
+                    }
+
+                }
             }
         }
 

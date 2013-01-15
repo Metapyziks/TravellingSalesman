@@ -24,7 +24,8 @@ namespace Visualiser
 
         public void UpdateTitle()
         {
-            Title = "Travelling Salesman Visualiser - " + Graph.CurrentRoute.Length;
+            Title = "Travelling Salesman Visualiser - " +
+                (Graph.CurrentRoute != null ? Graph.CurrentRoute.Length.ToString() : "" );
         }
 
         protected override void OnLoad(EventArgs e)

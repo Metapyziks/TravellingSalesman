@@ -12,7 +12,7 @@ namespace TravellingSalesman
         private int _cost;
         private bool[] _visited;
 
-        protected static readonly Random Rand  = new Random();
+        protected static readonly Random Rand = new Random();
 
         public Graph Graph { get; private set; }
         public int CurrentVertex { get; private set; }
@@ -33,7 +33,7 @@ namespace TravellingSalesman
         {
             _stepNo = 0;
         }
-         
+
         private void StartNewTour()
         {
             History[0] = CurrentVertex;
@@ -56,9 +56,9 @@ namespace TravellingSalesman
             int next = ChooseNext(pheromones, tours);
             Debug.Assert(!HasVisited(next), "Can't revisit a vertex in the current tour");
             _visited[next] = true;
+            // pheromones[CurrentVertex, next] += 1d / Graph[CurrentVertex, next];
+            // pheromones[next, CurrentVertex] += 1d / Graph[CurrentVertex, next];
             History[_stepNo++] = CurrentVertex = next;
-            pheromones[CurrentVertex, next] += 1d / Graph[CurrentVertex, next];
-            pheromones[next, CurrentVertex] += 1d;
 
             if (_stepNo > 1) {
                 _cost += Graph[History[_stepNo - 2], CurrentVertex];
@@ -73,13 +73,19 @@ namespace TravellingSalesman
             return -1;
         }
 
-        public void FortifyLastRoute(double[,] pheromones)
+        public void FortifyLastRoute(double[,] pheromones, int min, int max)
         {
-            double add = (double) Graph.Count / _cost;
+            double add = (double) Graph.Count / (_cost - min);
             int last = 0;
             for (int i = Graph.Count - 1; i >= 0; --i) {
                 pheromones[History[i], History[last]] += add;
                 pheromones[History[last], History[i]] += add;
+
+                if (pheromones[History[i], History[last]] > max) {
+                    pheromones[History[i], History[last]] = max;
+                    pheromones[History[last], History[i]] = max;
+                }
+
                 last = i;
             }
         }
@@ -91,7 +97,7 @@ namespace TravellingSalesman
 
         protected virtual double FindScore(int vertex, double[,] pheromones, int tours, double phWeight)
         {
-            return (pheromones[CurrentVertex, vertex] / (tours + 1) * phWeight + 1d)
+            return (pheromones[CurrentVertex, vertex] * phWeight + 1d)
                 / (Graph[CurrentVertex, vertex]);
         }
 
@@ -103,7 +109,7 @@ namespace TravellingSalesman
             for (int i = Graph.Count - 1; i >= 0; --i) {
                 if (HasVisited(i)) continue;
                 double score = FindScore(i, pheromones, tours, phWeight);
-                if (b == -1 || score > s) {
+                if (b == -1 || (score > s && Rand.NextDouble() < 0.99)) {
                     b = i;
                     s = score;
                 }

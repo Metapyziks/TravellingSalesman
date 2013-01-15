@@ -81,7 +81,7 @@ namespace Searcher
             Graph graph = Graph.FromFile( filePath );
             Console.WriteLine( "Graph loaded: {0} has {1} vertices", graph.Name, graph.Count );
             
-            String savePath = outDir + DSC + "TourfileA" + DSC + "tour" + graph.Name + ".txt";
+            String savePath = outDir + DSC + "TourfileB" + DSC + "tour" + graph.Name + ".txt";
             String datePath = Path.GetDirectoryName( savePath ) + Path.DirectorySeparatorChar;
             datePath += Path.GetFileNameWithoutExtension( savePath ) + ".";
             datePath += DateTime.Now.ToShortDateString().Replace( '/', '-' );
@@ -110,12 +110,10 @@ namespace Searcher
             }
             bool record = false;
             bool dayRecord = false;
-            
-            StochasticHillClimbSearcher searcher = new StochasticHillClimbSearcher( new ReversingSearcher() )
-            {
-                Attempts = graph.Count < 17 ? 256 :
-                    graph.Count < 50 ? 65536 : graph.Count < 100 ? 32768 : graph.Count < 500 ? 8192 : 4096,
-                Threads = _threads
+
+            var searcher = new AntColonySearcher<Ant> {
+                StepCount = graph.Count < 17 ? 256 :
+                    graph.Count < 50 ? 65536 : graph.Count < 100 ? 32768 : graph.Count < 500 ? 8192 : 4096
             };
 
             searcher.BetterRouteFound += ( sender, e ) =>
@@ -143,13 +141,6 @@ namespace Searcher
                     e.Route.Save( datePath );
                 }
             };
-
-            /*
-            var searcher = new GeneticSearcher() {
-                GenerationLimit = graph.Count < 17 ? 256 :
-                    graph.Count < 50 ? 65536 : graph.Count < 100 ? 32768 : graph.Count < 500 ? 8192 : 4096
-            };
-            */
 
             Route route = RunSearch( graph, searcher, null, quiet );
 

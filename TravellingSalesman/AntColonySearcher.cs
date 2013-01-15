@@ -46,6 +46,17 @@ namespace TravellingSalesman
                 Console.ForegroundColor = ConsoleColor.White;
             }
 
+            int minimum = 0;
+            for (int i = 0; i < graph.Count; ++i) {
+                int vmin = -1;
+                for (int j = 0; j < graph.Count; ++j) {
+                    if (i == j) continue;
+                    if (graph[i, j] < vmin || vmin == -1)
+                        vmin = graph[i, j];
+                }
+                minimum += vmin;
+            }
+
             var ants = new T[AntCount];
 
             var paths = new int[AntCount, 2];
@@ -66,14 +77,16 @@ namespace TravellingSalesman
                     paths[a, 0] = ant.CurrentVertex;
                     int cost = ant.Step(phms, tours);
                     paths[a, 1] = ant.CurrentVertex;
-                    if (cost > -1 && (best == null || cost < bestLength)) {
-                        ant.FortifyLastRoute(phms);
-                        best = new Route(graph, ant.History, graph.Count);
-                        bestLength = cost;
-                        if (BetterRouteFound != null)
-                            BetterRouteFound(this, new BetterRouteFoundEventArgs(best));
-                        ++tours;
-                        step = -1;
+                    if (cost > -1) {
+                        ant.FortifyLastRoute(phms, minimum, tours);
+                        if (best == null || cost < bestLength) {
+                            best = new Route(graph, ant.History, graph.Count);
+                            bestLength = cost;
+                            if (BetterRouteFound != null)
+                                BetterRouteFound(this, new BetterRouteFoundEventArgs(best));
+                            step = -1;
+                            ++tours;
+                        }
                     }
                 }
 
