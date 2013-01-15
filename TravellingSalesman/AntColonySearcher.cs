@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 
 namespace TravellingSalesman
 {
@@ -21,6 +22,7 @@ namespace TravellingSalesman
     {
         public int AntCount { get; set; }
         public int StepCount { get; set; }
+        public int Threads { get; set; }
 
         public event EventHandler<BetterRouteFoundEventArgs> BetterRouteFound;
         public event EventHandler<AntStepEventArgs> AntStep;
@@ -29,6 +31,7 @@ namespace TravellingSalesman
         {
             AntCount = 1024;
             StepCount = 65536;
+            Threads = 1;
         }
 
         public Route Search(Graph graph, bool printProgress = false)
@@ -41,7 +44,8 @@ namespace TravellingSalesman
 
             if (printProgress) {
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("# Starting a new {0}", GetType().Name);
+                Console.WriteLine("# Starting a new {0} search with {1} thread{2}", GetType().Name,
+                    Threads, Threads != 1 ? "s" : "");
                 Console.Write("Progress: {0}/{1} - 0", 0, StepCount);
                 Console.ForegroundColor = ConsoleColor.White;
             }
@@ -57,47 +61,113 @@ namespace TravellingSalesman
                 minimum += vmin;
             }
 
-            var ants = new T[AntCount];
-
-            var paths = new int[AntCount, 2];
-
             var args = new Object[] { graph, 0 };
-            var phms = new double[graph.Count, graph.Count];
             Route best = null;
             int bestLength = 0, tours = 0;
-            for (int step = 0; step < StepCount; ++step) {
-                for (int a = AntCount - 1; a >= 0; --a) {
-                    T ant = ants[a];
-                    if (ant == null) {
-                        args[1] = a % graph.Count;
-                        ants[a] = (T) ctor.Invoke(args);
-                        break;
+            int step = 0;
+            int exited = 0;
+
+            Func<bool> next = () => {
+                lock (this) {
+                    if (step < StepCount) {
+                        ++step;
+                        return true;
                     }
 
-                    paths[a, 0] = ant.CurrentVertex;
-                    int cost = ant.Step(phms, tours);
-                    paths[a, 1] = ant.CurrentVertex;
-                    if (cost > -1) {
-                        ant.FortifyLastRoute(phms, minimum, tours);
-                        if (best == null || cost < bestLength) {
-                            best = new Route(graph, ant.History, graph.Count);
-                            bestLength = cost;
-                            if (BetterRouteFound != null)
-                                BetterRouteFound(this, new BetterRouteFoundEventArgs(best));
-                            step = -1;
-                            ++tours;
+                    return false;
+                }
+            };
+
+            Func<bool> hasNext = () => {
+                lock (this)
+                    return step < StepCount;
+            };
+
+            Func<bool> ended = () => {
+                lock (this)
+                    return exited == Threads;
+            };
+
+            Action exit = () => {
+                lock (this)
+                    ++exited;
+            };
+
+            Action rejoin = () => {
+                lock (this)
+                    --exited;
+            };
+
+            Func<bool> waitForEnd = () => {
+                exit();
+
+                while (!hasNext() && !ended())
+                    Thread.Yield();
+
+                if (!ended()) {
+                    rejoin();
+                    return false;
+                } else
+                    return true;
+            };
+
+            Action<T, int> compare = (ant, cost) => {
+                lock (this) {
+                    if (best == null || cost < bestLength) {
+                        best = new Route(graph, ant.History, graph.Count);
+                        bestLength = cost;
+                        step = 0;
+                        ++tours;
+
+                        if (BetterRouteFound != null)
+                            BetterRouteFound(this, new BetterRouteFoundEventArgs(best));
+                    }
+                }
+            };
+
+            Thread mainThread = Thread.CurrentThread;
+
+            ThreadStart loop = () => {
+                var ants = new T[AntCount / Threads];
+                var phms = new double[graph.Count, graph.Count];
+
+                for (; ; ) {
+                    while (next()) {
+                        for (int a = ants.Length - 1; a >= 0; --a) {
+                            T ant = ants[a];
+                            if (ant == null) {
+                                args[1] = a % graph.Count;
+                                ants[a] = (T) ctor.Invoke(args);
+                                break;
+                            }
+
+                            int cost = ant.Step(phms, tours);
+                            if (cost > -1) {
+                                lock (phms) {
+                                    ant.FortifyLastRoute(phms, minimum, tours + 1);
+                                }
+                                compare(ant, cost);
+                            }
+                        }
+
+                        if (Thread.CurrentThread == mainThread && printProgress) {
+                            Console.CursorLeft = 10;
+                            Console.Write("{0}/{1} - {2}    ", step + 1, StepCount, bestLength);
                         }
                     }
-                }
 
-                if (AntStep != null)
-                    AntStep(this, new AntStepEventArgs(paths));
-
-                if (printProgress) {
-                    Console.CursorLeft = 10;
-                    Console.Write("{0}/{1} - {2}    ", step + 1, StepCount, bestLength);
+                    if (waitForEnd())
+                        break;
                 }
+            };
+            
+            Thread[] workers = new Thread[Threads - 1];
+            for (int i = 0; i < workers.Length; ++i) {
+                workers[i] = new Thread(loop);
+                workers[i].Start();
             }
+
+            loop();
 
             if (printProgress) {
                 Console.ForegroundColor = ConsoleColor.Green;

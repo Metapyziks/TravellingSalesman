@@ -76,6 +76,9 @@ namespace Searcher
 
         public static void SearchSingle( String filePath, String outDir, bool quiet = false )
         {
+            // if (!filePath.Contains("180"))
+            //    return;
+
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine( "Loading file {0}", filePath );
             Graph graph = Graph.FromFile( filePath );
@@ -112,8 +115,9 @@ namespace Searcher
             bool dayRecord = false;
 
             var searcher = new AntColonySearcher<Ant> {
-                StepCount = graph.Count < 17 ? 256 :
-                    graph.Count < 50 ? 65536 : graph.Count < 100 ? 32768 : graph.Count < 500 ? 8192 : 4096
+                Threads = 4,
+                AntCount = 24 * graph.Count,
+                StepCount = 65536
             };
 
             searcher.BetterRouteFound += ( sender, e ) =>
