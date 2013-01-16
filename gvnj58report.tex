@@ -1,12 +1,13 @@
 \documentclass[a4paper,11pt]{article}
 
+\usepackage{mathtools}
 \usepackage{lipsum}
 \usepackage{fullpage}
 \usepackage{tabu}
 \usepackage{array,ragged2e,pst-node,pst-dbicons}
 
 \title{Computer System II Networks Assignment}
-\date{January 16, 2013}
+\date{\today}
 \author{James King}
 
 \begin{document}
@@ -23,7 +24,35 @@ A piece of analysis software was also produced to try and display each given
 input in a form that is understandable to humans.}
 \end{abstract}
 
-\section{Algorithm A}
+\section{General Data Structures}
+Each city graph, after being loaded from an input file, is stored in a 2D
+integer array in such a way that the value in column $i$ and row $j$ is the
+distance between city $i$ and city $j$. Representing the graph in this form
+meant that checking the distance between two cities is a simple and fast
+operation, and I hoped this would lead to my search algorithms being more time
+efficient.
+
+Routes are represented as fixed length one dimensional integer arrays, with
+each value in the array being the index of the associated city. Each route also
+has two numbers stored inside it that record the number of cities in the route
+and the total cost of the route (the sum of the distances between each city in
+the route). The value for the route cost is initially set to $-1$, and when it
+is requested and its value is $-1$ it recalculates this cost. Additionally, any
+operations that could change the length of the route set this value back to
+$-1$, signalling that the value needs to be recalculated when next requested.
+
+When an empty route is first created, the values in its city array are the
+indexes of each city in ascending order. When the $i$th city is added to the
+route, the relevant index is swapped with the value that was at the $i$th
+position. This means that for a route of length $j$, all values in the array
+from $j+1$ onwards are the indexes of cities that are not currently in the tour
+and therefore can be selected to be added to the tour. I have also provided the
+facility of selecting the $k$th best city from this subset, using the end of
+the array as a buffer which is partially ordered until the city that is $k$th
+best using a given comparison criteria is found.
+
+\section{Algorithms}
+\subsection{Algorithm A}
 Initially I wanted to create a simple deterministic improvement search
 algorithm to use as a benchmark when testing the capabilities of more complex
 algorithms. Not wanting to simply copy a method I found from the internet, I
@@ -36,21 +65,33 @@ A gradient descent algorithm is a variant of the improvement search which will
 only perform mutations that immediately improve the current route, and this is
 the class of algorithm I intended to design.
 
-\subsection{Reversal Gradient Descent}
-My first challenge was to decide on a mutation method. The method would need to
-be quite simple in order to test many different mutations to find which ones
-improve the tour. I opted for a mutator which selects two cities in the tour
-and reverses the ordering of all cities between them. This method satisfies the
-condition of being able to traverse the search space between any two tours,
-given that swapping pairs of cities in the tour allows for any permutation of
-tour to be explored. A swap can be performed through two reversals, the first
-to swap the pair of cities you wish to exchange, and the second to reverse the
-cities between then into their initial order. With this reversal mutation
-method, it is also computationally simple to find how the length of the tour
-will be affected. Because the connections between each pair of cities inside
-the group being reversed will have the same cost (assuming the graph is
-symmetric), only the two connections between the set of cities being reversed
-and the rest of the tour will change in a way that could alter the tour length.
+\subsubsection{Reversal Mutation}
+My first task was to decide on a mutation method. The method would need to be
+quite simple in order to test many different mutations in a small amount of
+time to find which ones improve the tour. I opted for a mutator which selects
+two cities in the tour and reverses the ordering of all cities between them.
+This method satisfies the condition of being able to traverse the search space
+between any two tours, given that swapping pairs of cities in the tour allows
+for any permutation of tour to be explored. A swap can be performed through two
+reversals, the first to swap the pair of cities you wish to exchange, and the
+second to reverse the cities between then into their initial order. With this
+reversal mutation method, it is also computationally simple to find how the
+length of the tour will be affected. Because the connections between each pair
+of cities inside the group being reversed will have the same cost (assuming the
+graph is symmetric), only the two connections between the set of cities being
+reversed and the rest of the tour will change in a way that could alter the
+tour length. The amount by which a reversal between two cities $T_i$ and $T_j$
+will affect the tour length is therefore:
+
+$$(|\overrightarrow{{T_{i-1}}{T_i}}|
++ |\overrightarrow{{T_j}{T_{j+1}}}|)
+- (|\overrightarrow{{T_{i-1}}{T_j}}|
++ |\overrightarrow{{T_i}{T_{j+1}}}|)$$
+
+\noindent
+Here $T_i$ is the $i$th city in tour $T$, and $|\overrightarrow{{T_i}{T_j}}|$
+is the distance between city $T_i$ and $T_j$ as described by the city graph
+given as input.
 
 \begin{figure}
 \begin{center}
@@ -74,9 +115,9 @@ and the rest of the tour will change in a way that could alter the tour length.
 \hskip 5mm
 \Circlenode[radius=4mm,linestyle=dashed]{f1end}{~}
 \ncline[linestyle=dashed]{f1G}{f1end}
-\ncarc[arcangle=40,linestyle=dashed]{->}{f1B}{f1F}
-\ncarc[arcangle=40,linestyle=dashed]{<-}{f1E}{f1A}
-\\[2cm]
+\ncarc[arcangle=30,linestyle=dashed]{->}{f1B}{f1F}
+\ncarc[arcangle=30,linestyle=dashed]{<-}{f1E}{f1A}
+\\[1cm]
 \Large
 \Circlenode[radius=4mm,linestyle=dashed]{f2start}{~}
 \hskip 5mm
@@ -105,8 +146,38 @@ and the rest of the tour will change in a way that could alter the tour length.
 	\emph{F}.}
 \end{figure}
 
+I implemented the search as a greedy gradient descent, where for each iteration
+the algorithm looks through all possible pairs of cities and chooses to reverse
+between the ones that would lead to the biggest drop in tour size. This on its
+own produced some decent results, and was extremely fast. I experimented by
+combining it with a Best First Search, where for every new city added to the
+tour by the BFS the reversing improvement algorithm would be executed. This
+naturally produced smaller tours than either of the two algorithms on their
+own, and due to its speed and the quality of the results I decided to take the
+method further and see how I could improve it.
+
+\subsubsection{Stochastic Gradient Descent}
+I noticed through experimentation that for some city graphs my combined 
+algorithm actually produced a better result if the BFS was replaced by a 
+\emph{Worst} First Search. This made me think that maybe it would be possible
+for the algorithm to give even better results when using a stochastic
+constructive search in the place of a Best or Worst First Search. Because the
+reversal process was pretty fast, and constructing a tour by selecting random
+cities would naturally be faster than checking each one to see if it was the
+best or worst, I reasoned that I could test thousands of tours generated this
+way in a short amount of time. This new method produced some new records for
+a few of the city graphs the first time it was tested, and the more time it was
+left running for the higher the probability of a new record. Adding the ability
+for the method to utilize multiple threads meant that it would produce more
+records in the same amount of time as before, and after a couple of weeks of
+running it for a few minutes a day it seemed to reach a minimum for each city
+graph that it was unlikely to improve on.
+
+\subsection{Algorithm B}
+
+
 \section{Results Analysis}
-The results displayed in \emph{Table 1} are the all-time lowest tour lengths
+The results displayed in Table 1 are the all-time lowest tour lengths
 achieved by each algorithm. The table also shows the difference between the
 results of the two algorithms, and the difference as a percentage of the
 shortest tour's length.
