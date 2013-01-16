@@ -4,7 +4,9 @@
 \usepackage{lipsum}
 \usepackage{fullpage}
 \usepackage{tabu}
+\usepackage{wrapfig}
 \usepackage{array,ragged2e,pst-node,pst-dbicons}
+\usepackage{graphicx}
 
 \title{Computer System II Networks Assignment}
 \date{\today}
@@ -65,7 +67,6 @@ A gradient descent algorithm is a variant of the improvement search which will
 only perform mutations that immediately improve the current route, and this is
 the class of algorithm I intended to design.
 
-\subsubsection{Reversal Mutation}
 My first task was to decide on a mutation method. The method would need to be
 quite simple in order to test many different mutations in a small amount of
 time to find which ones improve the tour. I opted for a mutator which selects
@@ -156,7 +157,6 @@ naturally produced smaller tours than either of the two algorithms on their
 own, and due to its speed and the quality of the results I decided to take the
 method further and see how I could improve it.
 
-\subsubsection{Stochastic Gradient Descent}
 I noticed through experimentation that for some city graphs my combined 
 algorithm actually produced a better result if the BFS was replaced by a 
 \emph{Worst} First Search. This made me think that maybe it would be possible
@@ -175,6 +175,55 @@ graph that it was unlikely to improve on.
 
 \subsection{Algorithm B}
 
+Before I started work on my second method I wanted to have a go at visualising
+the graphs in a way that attempts to portray the distances between each node,
+thinking that with some extra insight into how the graphs were laid out I would
+be able to think of better methods of solving the problem. I wrote a simple
+program that essentially simulates springs between each city with strengths
+related to the distance between each city pair, and allow the cities to move
+until they are at an equilibrium. This method would work best for graphs where
+each cost to travel between two cities was based on the euclidean distance
+between two points that represent those cities.
+
+\begin{wrapfigure}{r}{0.5\textwidth}
+\includegraphics[width=0.48\textwidth]{175vis}
+\caption{Visualisation of the 175 city graph with the current shortest route.}
+\end{wrapfigure}
+
+This worked much more successfully than I expected. I was anticipating all the
+graphs having distances that were entirely random, and therefore not euclidean.
+While this appears to be true for some graphs, the 12, 58, 175 and 535 city
+graphs may be visualised quite nicely by the program. Looking at how different
+solutions given by my first method navigated around the visualised graph showed
+that some groups of cities would be navigated in similar ways each time, but
+the order in which these groups were visited would differ. A decent algorithm
+would be able to preserve subsections of the tour that were close to optimal
+but freely shift them around and reorder them to attempt to optimise the entire
+route.
+
+I was aware of the Ant Colony heuristic from a previous project, but back then
+I had implemented it based on a rough idea of how I thought the algorithm
+worked. From what I remembered, the method should have the ability to do as I
+described, optimising subsections of the tour but leaving the overall route
+flexible.
+
+The Ant Colony heuristic essentially tries to mimic the path finding and route
+optimisation method that ants have evolved in nature. An ant that first finds a
+route to some food leaves a pheromone trail as it travels between the food and
+the colony. This pheromone attracts other ants to follow it, which also
+reinforce the trail with their own scent. Every so often, an ant will randomly
+take a slight variation of the route which more ants may follow. Whichever
+route variation is shortest will have a higher amount of traffic; at first
+because the route is shorter so it can be travelled more times in an hour than
+a longer one, and later because it has more pheromones along it. This is
+emulated in a searcher by having independent ant agents that traverse a graph,
+choosing the next city to move to based on the amount of virtual pheromone left
+on the paths to each city and the path distance. Each time an ant completes a
+tour it leaves virtual pheromones along the tour route, with a potency 
+inversely proportional to the tour length.
+
+I implemented this method as a searcher, but the initial results were fairly
+poor.
 
 \section{Results Analysis}
 The results displayed in Table 1 are the all-time lowest tour lengths
@@ -182,10 +231,8 @@ achieved by each algorithm. The table also shows the difference between the
 results of the two algorithms, and the difference as a percentage of the
 shortest tour's length.
 
-\begin{table}[h!]
-\begin{center}
+\begin{table}[l]
 \input{resultstable}
-\end{center}
 \caption{Final results of both algorithms for each given city, and the
 	difference between them.}
 \end{table}
