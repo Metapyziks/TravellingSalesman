@@ -1,16 +1,123 @@
-\documentclass[a4paper]{article}
+\documentclass[a4paper,11pt]{article}
 
 \usepackage{lipsum}
 \usepackage{fullpage}
 \usepackage{tabu}
+\usepackage{array,ragged2e,pst-node,pst-dbicons}
 
 \title{Computer System II Networks Assignment}
-\date{January 14, 2013}
+\date{January 16, 2013}
 \author{James King}
 
 \begin{document}
 \maketitle
-\section{Introduction}
-\input{graphtest}
 
+\begin{abstract}
+\emph{The Travelling Salesman Problem is an example of the NP-Complete class of
+problems; attempting to find the optimal solution by trying every possibility
+would require an obscene amount of time for all but the smallest of input
+sizes. This report describes two methods for finding decent solutions in a 
+reasonable amount of time. The first is a type of stochastic gradient descent,
+and the second is a nature inspired algorithm that models a simple ant colony.
+A piece of analysis software was also produced to try and display each given
+input in a form that is understandable to humans.}
+\end{abstract}
+
+\section{Algorithm A}
+Initially I wanted to create a simple deterministic improvement search
+algorithm to use as a benchmark when testing the capabilities of more complex
+algorithms. Not wanting to simply copy a method I found from the internet, I
+attempted to find my own solution without researching existing ones.
+
+Each improvement search algorithm must have at least one mutation method which
+can be applied to a route. It should be possible, though multiple applications
+of this mutation method, to mutate any valid route into any other valid route.
+A gradient descent algorithm is a variant of the improvement search which will
+only perform mutations that immediately improve the current route, and this is
+the class of algorithm I intended to design.
+
+\subsection{Reversal Gradient Descent}
+My first challenge was to decide on a mutation method. The method would need to
+be quite simple in order to test many different mutations to find which ones
+improve the tour. I opted for a mutator which selects two cities in the tour
+and reverses the ordering of all cities between them. This method satisfies the
+condition of being able to traverse the search space between any two tours,
+given that swapping pairs of cities in the tour allows for any permutation of
+tour to be explored. A swap can be performed through two reversals, the first
+to swap the pair of cities you wish to exchange, and the second to reverse the
+cities between then into their initial order. With this reversal mutation
+method, it is also computationally simple to find how the length of the tour
+will be affected. Because the connections between each pair of cities inside
+the group being reversed will have the same cost (assuming the graph is
+symmetric), only the two connections between the set of cities being reversed
+and the rest of the tour will change in a way that could alter the tour length.
+
+\begin{figure}
+\begin{center}
+\begin{tabular}{c}
+\Large
+\Circlenode[radius=4mm,linestyle=dashed]{f1start}{~}
+\hskip 5mm
+\Circlenode[radius=4mm]{f1A}{A} \ncline[linestyle=dashed]{f1start}{f1A}
+\hskip 5mm
+\Circlenode[radius=4mm]{f1B}{B} \ncline{f1A}{f1B}
+\hskip 5mm
+\Circlenode[radius=4mm]{f1C}{C} \ncline{f1B}{f1C}
+\hskip 5mm
+\Circlenode[radius=4mm]{f1D}{D} \ncline{f1C}{f1D}
+\hskip 5mm
+\Circlenode[radius=4mm]{f1E}{E} \ncline{f1D}{f1E}
+\hskip 5mm
+\Circlenode[radius=4mm]{f1F}{F} \ncline{f1E}{f1F}
+\hskip 5mm
+\Circlenode[radius=4mm]{f1G}{G} \ncline{f1F}{f1G}
+\hskip 5mm
+\Circlenode[radius=4mm,linestyle=dashed]{f1end}{~}
+\ncline[linestyle=dashed]{f1G}{f1end}
+\ncarc[arcangle=40,linestyle=dashed]{->}{f1B}{f1F}
+\ncarc[arcangle=40,linestyle=dashed]{<-}{f1E}{f1A}
+\\[2cm]
+\Large
+\Circlenode[radius=4mm,linestyle=dashed]{f2start}{~}
+\hskip 5mm
+\Circlenode[radius=4mm]{f2A}{A} \ncline[linestyle=dashed]{f2start}{f2A}
+\hskip 5mm
+\Circlenode[radius=4mm]{f2E}{E} \ncline{f2A}{f2E}
+\hskip 5mm
+\Circlenode[radius=4mm]{f2D}{D} \ncline{f2E}{f2D}
+\hskip 5mm
+\Circlenode[radius=4mm]{f2C}{C} \ncline{f2D}{f2C}
+\hskip 5mm
+\Circlenode[radius=4mm]{f2B}{B} \ncline{f2C}{f2B}
+\hskip 5mm
+\Circlenode[radius=4mm]{f2F}{F} \ncline{f2B}{f2F}
+\hskip 5mm
+\Circlenode[radius=4mm]{f2G}{G} \ncline{f2F}{f2G}
+\hskip 5mm
+\Circlenode[radius=4mm,linestyle=dashed]{f2end}{~}
+\ncline[linestyle=dashed]{f2G}{f2end}
+\end{tabular}
+\end{center}
+\caption{Segment of a tour before and after a reversal is applied between
+	\emph{B} and \emph{E}, with the two new connections to be added represented
+	by dashed arcs. The only connections that differ in cost to the original
+	tour are the new connections from \emph{A} to \emph{E} and \emph{B} to
+	\emph{F}.}
+\end{figure}
+
+\section{Results Analysis}
+The results displayed in \emph{Table 1} are the all-time lowest tour lengths
+achieved by each algorithm. The table also shows the difference between the
+results of the two algorithms, and the difference as a percentage of the
+shortest tour's length.
+
+\begin{table}[h!]
+\begin{center}
+\input{resultstable}
+\end{center}
+\caption{Final results of both algorithms for each given city, and the
+	difference between them.}
+\end{table}
+
+\lipsum[1-5]
 \end{document}

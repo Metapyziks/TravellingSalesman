@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.IO;
 
 using TravellingSalesman;
+using System.Diagnostics;
 
 namespace LaTeXGraphGen
 {
@@ -19,12 +20,15 @@ namespace LaTeXGraphGen
             }, new LaTeXTable.ColumnSpec {
                 Justification = LaTeXTable.Justification.R
             }, new LaTeXTable.ColumnSpec {
+                Justification = LaTeXTable.Justification.R
+            }, new LaTeXTable.ColumnSpec {
                 RightLine = true,
                 Justification = LaTeXTable.Justification.R
             });
 
             table.AddHLine();
-            table.AddRow("City File", "Algorithm A", "Algorithm B");
+            table.AddRow("\\textbf{City File}", "\\textbf{Result A}",
+                "\\textbf{Result B}", "\\textbf{Difference}");
             table.AddHLine(); table.AddHLine();
             foreach (var cityFile in Directory.EnumerateFiles("cityfiles")) {
                 var graph = Graph.FromFile(cityFile);
@@ -36,18 +40,20 @@ namespace LaTeXGraphGen
                     routeA = Route.FromFile(graph, routeAPath);
                 if (File.Exists(routeBPath))
                     routeB = Route.FromFile(graph, routeBPath);
-                table.AddRow(graph.Name, routeA.Length.ToString(), routeB.Length.ToString());
+                int diff = routeB.Length - routeA.Length;
+                table.AddRow(graph.Name, routeA.Length.ToString(), routeB.Length.ToString(),
+                    diff.ToString() + " (" + (100d * diff / routeA.Length).ToString("F2") + "\\%)");
             }
             table.AddHLine();
 
-            using (var stream = new FileStream("graphtest.tex", FileMode.Create, FileAccess.Write)) {
+            using (var stream = new FileStream("resultstable.tex", FileMode.Create, FileAccess.Write)) {
                 var writer = new StreamWriter(stream);
                 table.WriteLaTeX(writer);
                 writer.Flush();
             }
 
-            Console.WriteLine("Press any key to exit...");
-            Console.ReadKey();
+            Console.WriteLine("Compiling...");
+            Process.Start("pdflatex", "gvnj58report.tex");
         }
     }
 }
