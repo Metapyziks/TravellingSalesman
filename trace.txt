@@ -1,4 +1,4 @@
-Thu 01/10/13  05:47:28 PM
+Tue 01/15/13  11:51:42 PM
 
 directory: .git ...
 error: no sets of tour-files are present
@@ -28,16 +28,16 @@ SAfile175.txt: good (length of tour is 21408)
 SAfile180.txt: good (length of tour is 1950)
 SAfile535.txt: good (length of tour is 48533)
 TourfileB...
-SAfile012.txt: no tour-file present
-SAfile017.txt: no tour-file present
-SAfile021.txt: no tour-file present
-SAfile026.txt: no tour-file present
-SAfile042.txt: no tour-file present
-SAfile048.txt: no tour-file present
-SAfile058.txt: no tour-file present
-SAfile175.txt: no tour-file present
-SAfile180.txt: no tour-file present
-SAfile535.txt: no tour-file present
+SAfile012.txt: good (length of tour is 56)
+SAfile017.txt: good (length of tour is 1444)
+SAfile021.txt: good (length of tour is 2549)
+SAfile026.txt: good (length of tour is 1473)
+SAfile042.txt: good (length of tour is 1188)
+SAfile048.txt: good (length of tour is 12505)
+SAfile058.txt: good (length of tour is 26027)
+SAfile175.txt: good (length of tour is 21774)
+SAfile180.txt: good (length of tour is 1950)
+SAfile535.txt: good (length of tour is 49061)
 
 Best tours:
 

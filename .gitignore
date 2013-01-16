@@ -116,3 +116,4 @@ TravellingSalesman.dll
 *.exe.manifest
 *.aux
 *.pdf
+*.config
