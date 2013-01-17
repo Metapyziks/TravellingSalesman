@@ -55,34 +55,30 @@ best using a given comparison criteria is found.
 
 \section{Algorithms}
 \subsection{Algorithm A}
-Initially I wanted to create a simple deterministic improvement search
-algorithm to use as a benchmark when testing the capabilities of more complex
-algorithms. Not wanting to simply copy a method I found from the internet, I
-attempted to find my own solution without researching existing ones.
+My first algorithm is a combined stochastic gradient descent and constructive
+search. The algorithm starts with an empty route. For each step, a random city
+from the set of unvisited cities is added to the end of the route. Next, a
+hill climbing algorithm operates on the tour until no new improvements are
+found. This process repeats, adding a new city every step, until the tour is
+complete. Then this tour's length is calculated and compared with the shortest
+found so far. If this is a new shortest tour, it is recorded and the whole
+algorithm starts again.
 
-Each improvement search algorithm must have at least one mutation method which
-can be applied to a route. It should be possible, though multiple applications
-of this mutation method, to mutate any valid route into any other valid route.
-A gradient descent algorithm is a variant of the improvement search which will
-only perform mutations that immediately improve the current route, and this is
-the class of algorithm I intended to design.
+The hill climbing method used in this algorithm is based around reversing
+sections of the tour. To perform the reversal between two cities $T_i$ and
+$T_j$ (where $T_i$ is the $i$th city in tour $T$), first the positions of $T_i$
+and $T_j$ are swapped in the tour. Then $i$ is incremented by $1$, and $j$ is
+decreased by $1$. The swapping and incrementing / decrementing process repeats
+until $i \ge j$, which is when all cities between the initial two selected ones
+have been reversed in place.
 
-My first task was to decide on a mutation method. The method would need to be
-quite simple in order to test many different mutations in a small amount of
-time to find which ones improve the tour. I opted for a mutator which selects
-two cities in the tour and reverses the ordering of all cities between them.
-This method satisfies the condition of being able to traverse the search space
-between any two tours, given that swapping pairs of cities in the tour allows
-for any permutation of tour to be explored. A swap can be performed through two
-reversals, the first to swap the pair of cities you wish to exchange, and the
-second to reverse the cities between then into their initial order. With this
-reversal mutation method, it is also computationally simple to find how the
-length of the tour will be affected. Because the connections between each pair
-of cities inside the group being reversed will have the same cost (assuming the
-graph is symmetric), only the two connections between the set of cities being
-reversed and the rest of the tour will change in a way that could alter the
-tour length. The amount by which a reversal between two cities $T_i$ and $T_j$
-will affect the tour length is therefore:
+The two cities to reverse between are chosen by checking every pair of cities
+for the pair that would give the largest improvement to tour length if
+reversed. The operation to find the change in tour length is made simple by the
+fact that only two connections will be changed in a way that could affect the
+tour length - the connections between the cities inside the swapped section are
+only reversed but their length stays the same. The change in tour length is
+therefore found like this:
 
 $$(|\overrightarrow{{T_{i-1}}{T_i}}|
 + |\overrightarrow{{T_j}{T_{j+1}}}|)
@@ -90,9 +86,40 @@ $$(|\overrightarrow{{T_{i-1}}{T_i}}|
 + |\overrightarrow{{T_i}{T_{j+1}}}|)$$
 
 \noindent
-Here $T_i$ is the $i$th city in tour $T$, and $|\overrightarrow{{T_i}{T_j}}|$
-is the distance between city $T_i$ and $T_j$ as described by the city graph
-given as input.
+Here $|\overrightarrow{{T_i}{T_j}}|$ is the distance between city $T_i$ and
+$T_j$ as described by the city graph given as input.
+
+Because of the nature of the reversal, some sets of pairs of cities would 
+produce the same change in tour length when reversed. Pairs that would have
+the same effect on tour length as others can be safely excluded to improve 
+performance. I achieve this by picking the index $i$ of the first city, and the 
+number of cities to reverse $c$, where $c \ge 2$ and
+$c \le \frac{toursize}{2}$. This excludes swapping a city with itself (which
+will never change the tour length) and any reversals that would return the same 
+result as a previous one but with the whole tour in reverse.
+
+The tour construction and reversal process is very fast, and because the
+process is independent of any other systems related to the generation process
+it may be easily threaded. This algorithm relies on being executed many, many
+times to increase the probability of finding the optimal tour, and through
+multithreading and other more general optimising techniques I improved the
+speed of the algorithm to run thousands of tour tests a second. While the
+algorithm may not be the smartest, by running it long enough it produced some
+pretty small tour sizes.
+
+Initially the algorithm would only run the reversal improvement method after
+the entire random tour was generated. This produced better results less
+frequently and was actually slower despite running the improvement algorithm
+only once per tour. The speed increase when improving after every new city
+added is probably because the tour would require less reversal operations to
+find a local minima when the tour is larger (and the reversal algorithm is more
+expensive) if the tour is constantly being maintained as it is built. However,
+I am not certain that it is possible for the absolute optimal tour to be found
+in every case when the tour is being improved as it is built whereas it is
+trivial to see that finding the optimal tour is possible when only improving
+after a random tour is built. In the end I decided to trade the possibility of
+finding the optimal tour for finding sub optimal but decent tours more
+frequently.
 
 \begin{figure}
 \begin{center}
@@ -147,32 +174,6 @@ given as input.
 	\emph{F}.}
 \end{figure}
 
-I implemented the search as a greedy gradient descent, where for each iteration
-the algorithm looks through all possible pairs of cities and chooses to reverse
-between the ones that would lead to the biggest drop in tour size. This on its
-own produced some decent results, and was extremely fast. I experimented by
-combining it with a Best First Search, where for every new city added to the
-tour by the BFS the reversing improvement algorithm would be executed. This
-naturally produced smaller tours than either of the two algorithms on their
-own, and due to its speed and the quality of the results I decided to take the
-method further and see how I could improve it.
-
-I noticed through experimentation that for some city graphs my combined 
-algorithm actually produced a better result if the BFS was replaced by a 
-\emph{Worst} First Search. This made me think that maybe it would be possible
-for the algorithm to give even better results when using a stochastic
-constructive search in the place of a Best or Worst First Search. Because the
-reversal process was pretty fast, and constructing a tour by selecting random
-cities would naturally be faster than checking each one to see if it was the
-best or worst, I reasoned that I could test thousands of tours generated this
-way in a short amount of time. This new method produced some new records for
-a few of the city graphs the first time it was tested, and the more time it was
-left running for the higher the probability of a new record. Adding the ability
-for the method to utilize multiple threads meant that it would produce more
-records in the same amount of time as before, and after a couple of weeks of
-running it for a few minutes a day it seemed to reach a minimum for each city
-graph that it was unlikely to improve on.
-
 \subsection{Algorithm B}
 
 Before I started work on my second method I wanted to have a go at visualising
@@ -223,7 +224,10 @@ tour it leaves virtual pheromones along the tour route, with a potency
 inversely proportional to the tour length.
 
 I implemented this method as a searcher, but the initial results were fairly
-poor.
+poor. I modified my visualiser to see which paths the ants were taking, and saw
+that they very rarely took routes that had high path cost. I found an issue
+with my path selection algorithm that was causing this behaviour, and after
+fixing it the results given were much improved.
 
 \section{Results Analysis}
 The results displayed in Table 1 are the all-time lowest tour lengths
