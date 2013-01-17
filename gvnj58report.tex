@@ -72,55 +72,6 @@ decreased by $1$. The swapping and incrementing / decrementing process repeats
 until $i \ge j$, which is when all cities between the initial two selected ones
 have been reversed in place.
 
-The two cities to reverse between are chosen by checking every pair of cities
-for the pair that would give the largest improvement to tour length if
-reversed. The operation to find the change in tour length is made simple by the
-fact that only two connections will be changed in a way that could affect the
-tour length - the connections between the cities inside the swapped section are
-only reversed but their length stays the same. The change in tour length is
-therefore found like this:
-
-$$(|\overrightarrow{{T_{i-1}}{T_i}}|
-+ |\overrightarrow{{T_j}{T_{j+1}}}|)
-- (|\overrightarrow{{T_{i-1}}{T_j}}|
-+ |\overrightarrow{{T_i}{T_{j+1}}}|)$$
-
-\noindent
-Here $|\overrightarrow{{T_i}{T_j}}|$ is the distance between city $T_i$ and
-$T_j$ as described by the city graph given as input.
-
-Because of the nature of the reversal, some sets of pairs of cities would 
-produce the same change in tour length when reversed. Pairs that would have
-the same effect on tour length as others can be safely excluded to improve 
-performance. I achieve this by picking the index $i$ of the first city, and the 
-number of cities to reverse $c$, where $c \ge 2$ and
-$c \le \frac{toursize}{2}$. This excludes swapping a city with itself (which
-will never change the tour length) and any reversals that would return the same 
-result as a previous one but with the whole tour in reverse.
-
-The tour construction and reversal process is very fast, and because the
-process is independent of any other systems related to the generation process
-it may be easily threaded. This algorithm relies on being executed many, many
-times to increase the probability of finding the optimal tour, and through
-multithreading and other more general optimising techniques I improved the
-speed of the algorithm to run thousands of tour tests a second. While the
-algorithm may not be the smartest, by running it long enough it produced some
-pretty small tour sizes.
-
-Initially the algorithm would only run the reversal improvement method after
-the entire random tour was generated. This produced better results less
-frequently and was actually slower despite running the improvement algorithm
-only once per tour. The speed increase when improving after every new city
-added is probably because the tour would require less reversal operations to
-find a local minima when the tour is larger (and the reversal algorithm is more
-expensive) if the tour is constantly being maintained as it is built. However,
-I am not certain that it is possible for the absolute optimal tour to be found
-in every case when the tour is being improved as it is built whereas it is
-trivial to see that finding the optimal tour is possible when only improving
-after a random tour is built. In the end I decided to trade the possibility of
-finding the optimal tour for finding sub optimal but decent tours more
-frequently.
-
 \begin{figure}
 \begin{center}
 \begin{tabular}{c}
@@ -174,60 +125,110 @@ frequently.
 	\emph{F}.}
 \end{figure}
 
+The two cities to reverse between are chosen by checking every pair of cities
+for the pair that would give the largest improvement to tour length if
+reversed. The operation to find the change in tour length is made simple by the
+fact that only two connections will be changed in a way that could affect the
+tour length - the connections between the cities inside the swapped section are
+only reversed but their length stays the same. The change in tour length is
+therefore found like this:
+
+$$(|\overrightarrow{{T_{i-1}}{T_i}}|
++ |\overrightarrow{{T_j}{T_{j+1}}}|)
+- (|\overrightarrow{{T_{i-1}}{T_j}}|
++ |\overrightarrow{{T_i}{T_{j+1}}}|)$$
+
+\noindent
+Here $|\overrightarrow{{T_i}{T_j}}|$ is the distance between city $T_i$ and
+$T_j$ as described by the city graph given as input.
+
+Because of the nature of the reversal, some sets of pairs of cities would 
+produce the same change in tour length when reversed. Pairs that would have
+the same effect on tour length as others can be safely excluded to improve 
+performance. I achieve this by picking the index $i$ of the first city, and the 
+number of cities to reverse $c$, where $c \ge 2$ and
+$c \le \frac{toursize}{2}$. This excludes swapping a city with itself (which
+will never change the tour length) and any reversals that would return the same 
+result as a previous one but with the whole tour in reverse.
+
+The tour construction and reversal process is very fast, and because the
+process is independent of any other systems related to the generation process
+it may be easily threaded. This algorithm relies on being executed many, many
+times to increase the probability of finding the optimal tour, and through
+multithreading and other more general optimising techniques I improved the
+speed of the algorithm to run thousands of tour tests a second. While the
+algorithm may not be the smartest, by running it long enough it produced some
+pretty small tour sizes. The algorithm keeps trying out new tours until no
+better tours are found for a given number of attempts.
+
+Initially the algorithm would only run the reversal improvement method after
+the entire random tour was generated. This produced better results less
+frequently and was actually slower despite running the improvement algorithm
+only once per tour. The speed increase when improving after every new city
+added is probably because the tour would require less reversal operations to
+find a local minima when the tour is larger (and the reversal algorithm is more
+expensive) if the tour is constantly being maintained as it is built. However,
+I am not certain that it is possible for the absolute optimal tour to be found
+in every case when the tour is being improved as it is built whereas it is
+trivial to see that finding the optimal tour is possible when only improving
+after a random tour is built. In the end I decided to trade the possibility of
+finding the optimal tour for finding sub optimal but decent tours more
+frequently.
+
 \subsection{Algorithm B}
+My second algorithm is a constructive search using an Ant Colony heuristic.
+The method places thousands of virtual ants at different starting positions on
+the graph, which then wander between cities they have yet to visit until they
+complete a tour. When a tour is complete, virtual pheromones are placed along
+the route the ant took which influence other ants to take the paths along that
+tour more often. Then the ant forgets which cities it has visited and starts
+another tour.
 
-Before I started work on my second method I wanted to have a go at visualising
-the graphs in a way that attempts to portray the distances between each node,
-thinking that with some extra insight into how the graphs were laid out I would
-be able to think of better methods of solving the problem. I wrote a simple
-program that essentially simulates springs between each city with strengths
-related to the distance between each city pair, and allow the cities to move
-until they are at an equilibrium. This method would work best for graphs where
-each cost to travel between two cities was based on the euclidean distance
-between two points that represent those cities.
+The ants choose their next city to visit by first scoring each unvisited city
+$C$ with the given criteria:
 
-\begin{wrapfigure}{r}{0.5\textwidth}
-\includegraphics[width=0.48\textwidth]{175vis}
+$$score = PW \times (PS[C] + 1.0)+(1.0 - PW) \times \frac{(CT + 1.0)}{PL[C]}$$
+
+Here $PW$ is a random number between $0.0$ and $1.0$,
+$PS[C]$ is the potency of the pheromones left on the path between
+the ant's current city and city $C$, $CT$ is the number of tours
+completed by any ant which was a new shortest tour, and $PL[C]$ is the
+length between the ant's current city and city $C$.
+
+After ranking each city in order by score, there is a random chance that the
+ant will skip the best city and use the second best, and an either smaller
+chance it will use the third best, and so on.
+
+The amount of pheromone left when an ant completes a tour is given by:
+
+$$pheromone = \frac{GraphCount}{TourCost - Minimum}$$
+
+Here $GraphCount$ is the number of cities in the problem, $TourCost$ is the
+total length of the tour, and $Minimum$ is the sum of the smallest cost from
+each city to any neighbour. The total amount of pheromone between two cities is
+also limited to being at most the number of fully completed tours that were new
+shortest tours.
+
+\begin{wrapfigure}{r}{0.42\textwidth}
+\includegraphics[width=0.4\textwidth]{175vis}
 \caption{Visualisation of the 175 city graph with the current shortest route.}
 \end{wrapfigure}
 
-This worked much more successfully than I expected. I was anticipating all the
-graphs having distances that were entirely random, and therefore not euclidean.
-While this appears to be true for some graphs, the 12, 58, 175 and 535 city
-graphs may be visualised quite nicely by the program. Looking at how different
-solutions given by my first method navigated around the visualised graph showed
-that some groups of cities would be navigated in similar ways each time, but
-the order in which these groups were visited would differ. A decent algorithm
-would be able to preserve subsections of the tour that were close to optimal
-but freely shift them around and reorder them to attempt to optimise the entire
-route.
+Like my first algorithm, this method can easily be threaded to improve speed.
+Also, initially the ants would tend to stop improving the route found after
+only a few iterations. I had written a simple tour visualiser that would
+attempt to approximate the positions of cities in a graph assuming the path
+costs given were euclidean distances, and I modified that visualiser to show
+the routes each ant was taking at each step. This allowed me to repeatedly
+modify my route selection and pheromone placement algorithms to try and get
+the ants to experience more routes, as tested by viewing them with the
+visualiser.
 
-I was aware of the Ant Colony heuristic from a previous project, but back then
-I had implemented it based on a rough idea of how I thought the algorithm
-worked. From what I remembered, the method should have the ability to do as I
-described, optimising subsections of the tour but leaving the overall route
-flexible.
-
-The Ant Colony heuristic essentially tries to mimic the path finding and route
-optimisation method that ants have evolved in nature. An ant that first finds a
-route to some food leaves a pheromone trail as it travels between the food and
-the colony. This pheromone attracts other ants to follow it, which also
-reinforce the trail with their own scent. Every so often, an ant will randomly
-take a slight variation of the route which more ants may follow. Whichever
-route variation is shortest will have a higher amount of traffic; at first
-because the route is shorter so it can be travelled more times in an hour than
-a longer one, and later because it has more pheromones along it. This is
-emulated in a searcher by having independent ant agents that traverse a graph,
-choosing the next city to move to based on the amount of virtual pheromone left
-on the paths to each city and the path distance. Each time an ant completes a
-tour it leaves virtual pheromones along the tour route, with a potency 
-inversely proportional to the tour length.
-
-I implemented this method as a searcher, but the initial results were fairly
-poor. I modified my visualiser to see which paths the ants were taking, and saw
-that they very rarely took routes that had high path cost. I found an issue
-with my path selection algorithm that was causing this behaviour, and after
-fixing it the results given were much improved.
+Admittedly I didn't spend as much time adjusting this algorithm as I did with
+the first, mainly because the first algorithm produced very good results from
+the start with relatively little effort. However, I expect that the ant colony,
+given enough tweaking and thought, will be able to reliably produce better
+results more frequently.
 
 \section{Results Analysis}
 The results displayed in Table 1 are the all-time lowest tour lengths
@@ -235,11 +236,21 @@ achieved by each algorithm. The table also shows the difference between the
 results of the two algorithms, and the difference as a percentage of the
 shortest tour's length.
 
-\begin{table}[l]
+\begin{table}[h]
+\begin{center}
 \input{resultstable}
 \caption{Final results of both algorithms for each given city, and the
 	difference between them.}
+\end{center}
 \end{table}
 
-\lipsum[1-5]
+The first obvious thing to note is that both algorithms achieved the exact same
+tour length for the first four tours. Given the small size of the tours, this
+could be because the length found is the absolute optimum. Both algorithms find
+their respective minimum tours in very little time. The fifth tour is almost
+also identical for both algorithms, and in fact only differs by 1.
+
+Tours for the graphs of size 48, 58 and 175 differ relatively greatly between
+the two methods.
+
 \end{document}

@@ -107,11 +107,11 @@ namespace TravellingSalesman
         protected virtual int ChooseNext(double[,] pheromones, int tours)
         {
             double l = double.MaxValue;
+            double phWeight = _rand.NextDouble(); // / (tours + 1);
             int b;
             do {
                 b = -1;
                 double s = 0;
-                double phWeight = 0.5; //_rand.NextDouble(); // / (tours + 1);
                 for (int i = Graph.Count - 1; i >= 0; --i) {
                     if (HasVisited(i)) continue;
                     double score = FindScore(i, pheromones, tours, phWeight);
