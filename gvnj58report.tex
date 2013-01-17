@@ -166,7 +166,7 @@ the entire random tour was generated. This produced better results less
 frequently and was actually slower despite running the improvement algorithm
 only once per tour. The speed increase when improving after every new city
 added is probably because the tour would require less reversal operations to
-find a local minima when the tour is larger (and the reversal algorithm is more
+find a local minimum when the tour is larger (and the reversal algorithm is more
 expensive) if the tour is constantly being maintained as it is built. However,
 I am not certain that it is possible for the absolute optimal tour to be found
 in every case when the tour is being improved as it is built whereas it is
@@ -245,12 +245,39 @@ shortest tour's length.
 \end{table}
 
 The first obvious thing to note is that both algorithms achieved the exact same
-tour length for the first four tours. Given the small size of the tours, this
-could be because the length found is the absolute optimum. Both algorithms find
-their respective minimum tours in very little time. The fifth tour is almost
-also identical for both algorithms, and in fact only differs by 1.
+tour length for the first four tours. The fifth tour is almost also identical
+for both algorithms, and in fact only differs by 1. Given the small size of the
+graphs, this could be because the length found is the absolute optimum. Both 
+algorithms find their respective minimum tours in very little time.
 
 Tours for the graphs of size 48, 58 and 175 differ relatively greatly between
-the two methods.
+the two methods. As the graphs get larger, the number of possible tours
+increases extremely rapidly and probability of an arbitrary tour being optimal
+decreases rapidly too. For the first algorithm, this means that it is much less
+likely to generate a random route that, when reduced, finds the global minimum
+tour length and not just a local minimum. The second algorithm will have a
+similar problem, in that it will tend towards a local minimum and then rest
+there. As previously mentioned, the second algorithm should be able to explore
+outside of any local minima found if the details of the method are optimised.
+The first algorithm took a very long time to find its current lowest tours for
+this graph, even though it can test many tours in a second. However, it found
+results comparable to the quality that the second algorithm found in very
+little time. The second algorithm would take a minute or two on the larger
+graphs to reach a stable minimum, which would vary quite dramatically between
+executions depending on what sequence the pseudo-random number generator would
+produce.
+
+The 180 node graph is an exceptional one. It has many paths between cities with
+zero cost, which are apparently designed to act like ``dead ends'' in that a
+Best First Search will attempt to follow these and end up at a city with the
+only paths available having extremely high cost. Both of my methods seemed to
+avoid this issue, however. An interesting difference between the two algorithms
+is that the first took a few hours of execution over the course of many runs to 
+arrive at its minimum, and yet the second finds the same result within a few 
+seconds most of the time. However, this is not always the case; the second
+method will occasionally find a tour with maybe double the length and not
+improve, but this only seems to happen around half the time.
+
+The last (and largest) graph 
 
 \end{document}
