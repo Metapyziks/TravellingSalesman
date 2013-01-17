@@ -2,13 +2,13 @@
 
 \usepackage{mathtools}
 \usepackage{lipsum}
-\usepackage{fullpage}
+\usepackage[margin=20mm]{geometry}
 \usepackage{tabu}
 \usepackage{wrapfig}
 \usepackage{array,ragged2e,pst-node,pst-dbicons}
 \usepackage{graphicx}
 
-\title{Computer System II Networks Assignment}
+\title{Software Applications AI Search Assignment}
 \date{\today}
 \author{James King}
 
@@ -22,39 +22,60 @@ would require an obscene amount of time for all but the smallest of input
 sizes. This report describes two methods for finding decent solutions in a 
 reasonable amount of time. The first is a type of stochastic gradient descent,
 and the second is a nature inspired algorithm that models a simple ant colony.
-A piece of analysis software was also produced to try and display each given
-input in a form that is understandable to humans.}
+A piece of analysis software was also produced which attempts to display each
+given graph in a form that is understandable to humans.}
 \end{abstract}
 
 \section{General Data Structures}
-Each city graph, after being loaded from an input file, is stored in a 2D
+Each city graph, after being loaded from the input file, is stored in a 2D
 integer array in such a way that the value in column $i$ and row $j$ is the
 distance between city $i$ and city $j$. Representing the graph in this form
-meant that checking the distance between two cities is a simple and fast
-operation, and I hoped this would lead to my search algorithms being more time
+means that checking the distance between two cities is a simple and fast
+operation, which was intended to make any search algorithms be more time
 efficient.
 
 Routes are represented as fixed length one dimensional integer arrays, with
 each value in the array being the index of the associated city. Each route also
 has two numbers stored inside it that record the number of cities in the route
 and the total cost of the route (the sum of the distances between each city in
-the route). The value for the route cost is initially set to $-1$, and when it
-is requested and its value is $-1$ it recalculates this cost. Additionally, any
-operations that could change the length of the route set this value back to
-$-1$, signalling that the value needs to be recalculated when next requested.
+the route). The value for the route cost is initially set internally to $-1$.
+When the length of the route is requested, if this value is $-1$ it
+recalculates it and stores it ready to be returned again without having to
+perform the costly calculation again. Additionally, any operations that could 
+change the length of the route set this value back to $-1$, signalling that the
+value needs to be recalculated when next requested.
 
-When an empty route is first created, the values in its city array are the
+\begin{wrapfigure}{r}{0.38\textwidth}
+\includegraphics[width=0.36\textwidth]{175vis}
+\caption{The 175 city graph}
+\end{wrapfigure}
+
+When an empty route is first created, the values in its integer array are the
 indexes of each city in ascending order. When the $i$th city is added to the
-route, the relevant index is swapped with the value that was at the $i$th
-position. This means that for a route of length $j$, all values in the array
-from $j+1$ onwards are the indexes of cities that are not currently in the tour
-and therefore can be selected to be added to the tour. I have also provided the
-facility of selecting the $k$th best city from this subset, using the end of
-the array as a buffer which is partially ordered until the city that is $k$th
-best using a given comparison criteria is found.
+route, the item in the array with value equal to the city's index is swapped
+with the value that was at the $i$th position. This means that for a route of
+length $j$, all values in the array from $j+1$ onwards are the indexes of
+cities that are not currently in the tour and therefore can be selected to be
+added to the tour. It is also possible to select the $k$th best city from this
+subset, using the end of the array as a buffer which is partially ordered until
+the city that is $k$th best using a given comparison criteria is found.
 
-\section{Algorithms}
-\subsection{Algorithm A}
+The graphs are given in a form that is almost impossible for a human to
+understand and visualise, which can make it difficult to see what a search
+method is doing right or wrong. I wrote a simple graph visualiser that attempts
+to find a graphical representation of a given city file as a collection of
+connected points on a euclidean plane. This is achieved by attaching simulated
+dampened springs between each city with a strength proportional to the desired
+distance between the two cities. This produced far better images than I had
+anticipated; I was expecting all of the given graphs to have edge lengths that
+could in no way be realistically approximated as euclidean distances. While
+this is true for six of the graphs, the graphs with 12, 58, 127 and 535 cities
+all have fairly nice visual representations. For example, the 175 city graph
+(Figure 1) appears to consist of many rows of cities with a few others dotted
+around them. The visualiser also has the ability to manipulate the positions of
+cities and display a given tour, which can be modified also.
+
+\section{Algorithm A}
 My first algorithm is a combined stochastic gradient descent and constructive
 search. The algorithm starts with an empty route. For each step, a random city
 from the set of unvisited cities is added to the end of the route. Next, a
@@ -72,7 +93,9 @@ decreased by $1$. The swapping and incrementing / decrementing process repeats
 until $i \ge j$, which is when all cities between the initial two selected ones
 have been reversed in place.
 
-\begin{figure}
+\begin{figure}[h!]
+\centering
+\parbox{0.8\textwidth}{
 \begin{center}
 \begin{tabular}{c}
 \Large
@@ -94,8 +117,8 @@ have been reversed in place.
 \hskip 5mm
 \Circlenode[radius=4mm,linestyle=dashed]{f1end}{~}
 \ncline[linestyle=dashed]{f1G}{f1end}
-\ncarc[arcangle=30,linestyle=dashed]{->}{f1B}{f1F}
-\ncarc[arcangle=30,linestyle=dashed]{<-}{f1E}{f1A}
+\ncarc[arcangle=30,linestyle=dashed]{-}{f1B}{f1F}
+\ncarc[arcangle=30,linestyle=dashed]{-}{f1E}{f1A}
 \\[1cm]
 \Large
 \Circlenode[radius=4mm,linestyle=dashed]{f2start}{~}
@@ -116,14 +139,15 @@ have been reversed in place.
 \hskip 5mm
 \Circlenode[radius=4mm,linestyle=dashed]{f2end}{~}
 \ncline[linestyle=dashed]{f2G}{f2end}
+
 \end{tabular}
-\end{center}
 \caption{Segment of a tour before and after a reversal is applied between
 	\emph{B} and \emph{E}, with the two new connections to be added represented
-	by dashed arcs. The only connections that differ in cost to the original
-	tour are the new connections from \emph{A} to \emph{E} and \emph{B} to
-	\emph{F}.}
+	by dashed arcs.}
+\end{center}
+}
 \end{figure}
+\vspace{-20pt}
 
 The two cities to reverse between are chosen by checking every pair of cities
 for the pair that would give the largest improvement to tour length if
@@ -175,7 +199,7 @@ after a random tour is built. In the end I decided to trade the possibility of
 finding the optimal tour for finding sub optimal but decent tours more
 frequently.
 
-\subsection{Algorithm B}
+\section{Algorithm B}
 My second algorithm is a constructive search using an Ant Colony heuristic.
 The method places thousands of virtual ants at different starting positions on
 the graph, which then wander between cities they have yet to visit until they
@@ -187,17 +211,22 @@ another tour.
 The ants choose their next city to visit by first scoring each unvisited city
 $C$ with the given criteria:
 
-$$score = PW \times (PS[C] + 1.0)+(1.0 - PW) \times \frac{(CT + 1.0)}{PL[C]}$$
+$$score = PW \times (PS(C) + 1.0)+(1.0 - PW) \times \frac{(CT + 1.0)}{PL(C)}$$
 
 Here $PW$ is a random number between $0.0$ and $1.0$,
-$PS[C]$ is the potency of the pheromones left on the path between
+$PS(C)$ is the potency of the pheromones left on the path between
 the ant's current city and city $C$, $CT$ is the number of tours
-completed by any ant which was a new shortest tour, and $PL[C]$ is the
+completed by any ant which was a new shortest tour, and $PL(C)$ is the
 length between the ant's current city and city $C$.
 
+The equation is split into two parts, the first to score based on pheromone
+level, and the second on path cost. The value of $PW$ determines how much the
+score is weighted by pheromones, which was introduced so that some ants would
+select cities on path cost while others would use pheromone potency.
+
 After ranking each city in order by score, there is a random chance that the
-ant will skip the best city and use the second best, and an either smaller
-chance it will use the third best, and so on.
+ant will skip the best city and use the second best, and an even smaller chance
+it will use the third best, and so on.
 
 The amount of pheromone left when an ant completes a tour is given by:
 
@@ -207,42 +236,44 @@ Here $GraphCount$ is the number of cities in the problem, $TourCost$ is the
 total length of the tour, and $Minimum$ is the sum of the smallest cost from
 each city to any neighbour. The total amount of pheromone between two cities is
 also limited to being at most the number of fully completed tours that were new
-shortest tours.
+shortest tours. The subtraction of $Minimum$ was added later to make improved
+tour lengths have a bigger difference in pheromone potency. Since $TourCost$
+can never be lower than $Minimum$, not subtracting this value would mean that
+an improvement in tour length would lead to only an insignificant difference in
+the denominator for larger graphs.
 
-\begin{wrapfigure}{r}{0.42\textwidth}
-\includegraphics[width=0.4\textwidth]{175vis}
-\caption{Visualisation of the 175 city graph with the current shortest route.}
-\end{wrapfigure}
+The equations used to determine which cities to visit were formulated using the
+graph visualiser I had previously written; initially the ants would tend to
+stop improving the route found after only a few iterations, so I modified the
+graph visualiser to show the routes each ant was taking at each step. This
+allowed me to repeatedly modify my route selection and pheromone placement
+algorithms to try and force the ants to experience more routes, as tested by 
+viewing them with the visualiser.
 
 Like my first algorithm, this method can easily be threaded to improve speed.
-Also, initially the ants would tend to stop improving the route found after
-only a few iterations. I had written a simple tour visualiser that would
-attempt to approximate the positions of cities in a graph assuming the path
-costs given were euclidean distances, and I modified that visualiser to show
-the routes each ant was taking at each step. This allowed me to repeatedly
-modify my route selection and pheromone placement algorithms to try and get
-the ants to experience more routes, as tested by viewing them with the
-visualiser.
+I also improved execution speed by recording which cities each ant had visited
+in its current tour in an array of boolean values so that looking up if a tour
+was unvisited would have a constant time cost instead of a linear one.
 
 Admittedly I didn't spend as much time adjusting this algorithm as I did with
 the first, mainly because the first algorithm produced very good results from
 the start with relatively little effort. However, I expect that the ant colony,
-given enough tweaking and thought, will be able to reliably produce better
-results more frequently.
+given enough tweaking and thought, will be more effective at working towards
+smaller tours.
 
 \section{Results Analysis}
-The results displayed in Table 1 are the all-time lowest tour lengths
-achieved by each algorithm. The table also shows the difference between the
-results of the two algorithms, and the difference as a percentage of the
-shortest tour's length.
-
-\begin{table}[h]
+\begin{wraptable}{r}{0.5\textwidth}
 \begin{center}
 \input{resultstable}
 \caption{Final results of both algorithms for each given city, and the
 	difference between them.}
 \end{center}
-\end{table}
+\end{wraptable}
+
+The results displayed in Table 1 are the all-time lowest tour lengths
+achieved by each algorithm. The table also shows the difference between the
+results of the two algorithms, and the difference as a percentage of the
+shortest tour's length.
 
 The first obvious thing to note is that both algorithms achieved the exact same
 tour length for the first four tours. The fifth tour is almost also identical
