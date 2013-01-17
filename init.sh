@@ -11,7 +11,7 @@ cd $DIR
 binpath=Searcher.exe
 logpath=console.log
 
-threads=2
+threads=1
 
 MONO="$(pidof mono)"
 if [ $MONO ]
