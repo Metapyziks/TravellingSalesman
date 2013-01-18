@@ -103,7 +103,7 @@ namespace TravellingSalesman
         protected virtual double FindScore(int vertex, double[,] pheromones, int tours, double phWeight)
         {
             return phWeight * pheromones[CurrentVertex, vertex] +
-                (1d - phWeight) * (tours + 1d) / (Graph[CurrentVertex, vertex]);
+                (1d - phWeight) * (tours + 1d) / (Graph[CurrentVertex, vertex] + 1d);
         }
 
         protected virtual int ChooseNext(double[,] pheromones, int tours)

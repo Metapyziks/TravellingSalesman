@@ -26,7 +26,7 @@ A piece of analysis software was also produced which attempts to display a
 given graph in a form that is understandable to humans.}
 \end{abstract}
 
-\section{General Data Structures}
+\subsection*{General Data Structures}
 Each city graph, after being loaded from the input file, is stored in a 2D
 integer array in such a way that the value in column $i$ and row $j$ is the
 distance between city $i$ and city $j$. Representing the graph in this form
@@ -62,21 +62,22 @@ subset, using the end of the array as a buffer which is partially ordered until
 the city that is $k$th best using a given comparison criteria is found.
 
 The graphs are given in a form that is almost impossible for a human to
-understand and visualise, which can make it difficult to see what a search
-method is doing right or wrong. I wrote a simple graph visualiser that attempts
-to find a graphical representation of a given city file as a collection of
-connected points on a euclidean plane. This is achieved by attaching simulated
-dampened springs between each city with a strength proportional to the desired
-distance between the two cities. This produced far better images than I had
-anticipated; I was expecting all of the given graphs to have edge lengths that
-could in no way be realistically approximated as euclidean distances. While
-this is true for six of the graphs, the graphs with 12, 58, 127 and 535 cities
-all have fairly nice visual representations. For example, the 175 city graph
-(Figure 1) appears to consist of many rows of cities with a few others dotted
-around them. The visualiser also has the ability to manipulate the positions of
-cities and display a given tour, which can be modified also.
+understand and visualise unaided, which can make it difficult to see what a
+search method is doing right or wrong. I wrote a simple graph visualiser that
+attempts to find a graphical representation of a given city file as a
+collection of connected points on a euclidean plane. This is achieved by
+attaching simulated dampened springs between each pair of cities with a
+strength proportional to the desired distance between the two cities. This
+produced far better images than I had anticipated; I was expecting all of the
+given graphs to have edge lengths that could in no way be realistically
+approximated as euclidean distances. While this is true for six of the graphs,
+the graphs with 12, 58, 175 and 535 cities all have fairly nice visual
+representations. For example, the 175 city graph appears to consist of many
+rows of cities with a few others dotted around them (Figure 1). The visualiser
+also has the ability to manipulate the positions of cities and display a given
+tour.
 
-\section{Algorithm A}
+\subsection*{Algorithm A}
 My first algorithm is a combined stochastic gradient descent and constructive
 search. The algorithm starts with an empty tour. For each step, a random city
 from the set of unvisited cities is added to the end of the tour. Next, a
@@ -152,11 +153,13 @@ have been reversed in place.
 
 The two cities to reverse between are chosen by checking every pair of cities
 for the pair that would give the largest improvement to tour length if
-reversed. The operation to find the change in tour length is made simple by the
-fact that only two connections will be changed in a way that could affect the
-tour length - the connections between the cities inside the swapped section are
-only reversed but their length stays the same. The change in tour length is
-therefore found like this:
+reversed. The operation to find the change in tour length is made
+computationally simple by the fact that only two connections will be changed in
+a way that could affect the tour length - the connections between the cities
+inside the swapped section are reversed, but their length stays the same. The 
+change in tour length is therefore found with this simple formula with constant
+time complexity ($|\overrightarrow{{T_i}{T_j}}|$ is the distance from city
+$T_i$ to $T_j$ as described by the city graph given as input).
 
 $$(|\overrightarrow{{T_{i-1}}{T_i}}|
 + |\overrightarrow{{T_j}{T_{j+1}}}|)
@@ -164,17 +167,14 @@ $$(|\overrightarrow{{T_{i-1}}{T_i}}|
 + |\overrightarrow{{T_i}{T_{j+1}}}|)$$
 
 \noindent
-Here $|\overrightarrow{{T_i}{T_j}}|$ is the distance between city $T_i$ and
-$T_j$ as described by the city graph given as input.
-
-Because of the nature of the reversal, some sets of pairs of cities would 
-produce the same change in tour length when reversed. Pairs that would have
-the same effect on tour length as others can be safely excluded to improve 
+Because of the nature of the reversal, there exist sets of pairs of cities
+which produce the same change in tour length when reversed. Pairs that would
+have the same effect on tour length as others can be safely excluded to improve 
 performance. I achieve this by picking the index $i$ of the first city, and the 
 number of cities to reverse $c$, where $c \ge 2$ and
 $c \le \frac{toursize}{2}$. This excludes swapping a city with itself (which
 will never change the tour length) and any reversals that would return the same 
-result as a previous one but with the whole tour in reverse.
+tour as a previous one but entirely in reverse.
 
 The tour construction and reversal process is very fast, and because the
 process is independent of any other systems related to the generation process
@@ -182,9 +182,8 @@ it may be easily threaded. This algorithm relies on being executed many, many
 times to increase the probability of finding the optimal tour, and through
 multithreading and other more general optimising techniques I improved the
 speed of the algorithm to run thousands of tour tests a second. While the
-algorithm may not be the smartest, by running it long enough it produced some
-pretty small tour sizes. The algorithm keeps trying out new tours until no
-better tours are found for a given number of attempts.
+algorithm may not be the most complex, by running it long enough it produced
+some pretty small tour sizes.
 
 Initially the algorithm would only run the reversal improvement method after
 the entire random tour was generated. This produced better results less
@@ -196,23 +195,22 @@ expensive) if the tour is constantly being maintained as it is built. However,
 I am not certain that it is possible for the absolute optimal tour to be found
 in every case when the tour is being improved as it is built whereas it is
 trivial to see that finding the optimal tour is possible when only improving
-after a random tour is built. In the end I decided to trade the possibility of
-finding the optimal tour for finding sub optimal but decent tours more
-frequently.
+after a random tour is built. I decided to trade the possibility of finding the
+optimal tour for finding sub optimal but decent tours more frequently.
 
-\section{Algorithm B}
+\subsection*{Algorithm B}
 My second algorithm is a constructive search using an Ant Colony heuristic.
 The method places thousands of virtual ants at different starting positions on
 the graph, which then wander between cities they have yet to visit until they
 complete a tour. When a tour is complete, virtual pheromones are placed along
-the route the ant took which influence other ants to take the paths along that
-tour more often. Then the ant forgets which cities it has visited and starts
-another tour.
+the route that the ant took, which influence other ants to take the paths along
+that tour more often. The ant then forgets which cities it has visited and
+starts another tour.
 
 The ants choose their next city to visit by first scoring each unvisited city
 $C$ with the given criteria:
 
-$$score = PW \times PS(C)+(1.0 - PW) \times \frac{(CT + 1.0)}{PL(C)}$$
+$$score = PW \times PS(C)+(1.0 - PW) \times \frac{CT + 1.0}{PL(C) + 1.0}$$
 
 Here $PW$ is a random number between $0.0$ and $1.0$,
 $PS(C)$ is the potency of the pheromones left on the path between
@@ -223,7 +221,7 @@ length between the ant's current city and city $C$.
 The equation is split into two parts, the first to score based on pheromone
 level, and the second on path cost. The value of $PW$ determines how much the
 score is weighted by pheromones, which was introduced so that some ants would
-select cities on path cost while others would use pheromone potency.
+select cities by looking at path cost while others would use pheromone potency.
 
 After ranking each city in order by score, there is a random chance that the
 ant will skip the best city and use the second best, and an even smaller chance
@@ -233,41 +231,40 @@ The amount of pheromone left when an ant completes a tour is given by:
 
 $$pheromone = \frac{GraphCount}{TourCost - Minimum}$$
 
-Here $GraphCount$ is the number of cities in the problem, $TourCost$ is the
-total length of the tour, and $Minimum$ is the sum of the smallest cost from
-each city to any neighbour. The total amount of pheromone between two cities is
-also limited to being at most the number of fully completed tours that were new
-shortest tours. The subtraction of $Minimum$ was added later to make improved
-tour lengths have a bigger difference in pheromone potency. Since $TourCost$
-can never be lower than $Minimum$, not subtracting this value would mean that
-an improvement in tour length would lead to only an insignificant difference in
-the denominator for larger graphs.
+Here $GraphCount$ is the number of cities in the graph, $TourCost$ is the
+total length of the tour, and $Minimum$ is a constant which is the sum of the
+smallest cost from each city in the graph to any neighbour. The total amount of
+pheromone between two cities is also limited to being at most the value of
+$CT$. The subtraction of $Minimum$ was added later to make improved tour
+lengths have a bigger difference in pheromone potency. Since $TourCost$ can
+never be lower than $Minimum$, not subtracting this value would mean that an 
+improvement in tour length would lead to only an insignificant difference in
+the amount of pheromone placed for larger graphs.
 
 The equations used to determine which cities to visit were formulated using the
 graph visualiser I had previously written; initially the ants would tend to
 stop improving the route found after only a few iterations, so I modified the
-graph visualiser to show the paths each ant was taking at each step. This
-allowed me to repeatedly modify my path selection and pheromone placement
-algorithms to try and force the ants to experience more routes, as tested by 
-viewing them with the visualiser.
+graph visualiser to show the paths each ant took at each step. This allowed me
+to repeatedly modify my path selection and pheromone placement algorithms to
+try and force the ants to experience more routes, as tested by viewing them
+with the visualiser. One such improvement was that I added a random probability
+for the pheromones to be cleared if no better result was found in a while. This
+would give the simulation the opportunity to find other tours.
 
-I noticed that eventually the simulation would stabilize without finding any
-new tours for many steps, so I added a random probability for the pheromones
-to be cleared if no better result was found in a while. This would give the
-simulation the opportunity to find other tours.
-
-Like my first algorithm, this method can easily be threaded to improve speed.
-I also improved execution speed by recording which cities each ant had visited
-in its current tour in an array of boolean values so that looking up if a tour
-was unvisited would have a constant time cost instead of a linear one.
+Like my first algorithm, this method was easily threaded to improve speed. I
+also improved execution speed by recording which cities each ant had visited in
+its current tour in an array of boolean values so that looking up if a tour was
+unvisited would have a constant time cost instead of a linear one. I chose to
+use 24 ants per city because having much more tended to saturate the graph with
+pheromones too quickly.
 
 Admittedly I didn't spend as much time adjusting this algorithm as I did with
 the first, mainly because the first algorithm produced very good results from
 the start with relatively little effort. However, I expect that the ant colony,
 given enough tweaking and thought, will be more effective at working towards
-smaller tours.
+smaller tours in an intelligent manner.
 
-\section{Results Analysis}
+\subsection*{Results Analysis}
 \begin{wraptable}{r}{0.5\textwidth}
 \begin{center}
 \input{resultstable}
@@ -285,10 +282,9 @@ The first obvious thing to note is that both algorithms achieved the exact same
 tour length for the first four tours. Given the small size of the graphs,
 I would be tempted to claim that this may be because the length found is the
 absolute minimum. Both algorithms find their respective minimum tours in very
-little time, and it is hard to differentiate the times taken by the two
-algorithms.
+little time, and it is hard to compare the two in that sense.
 
-Tours lengths for the graphs of size 42 and 48 differ very little between
+Tour lengths for the graphs of size 42 and 48 differ very little between
 the two methods, and the 58 city graph again has equal tour costs for both.
 This may have something to do with the nature of that graph, which when
 visualised shows that the paths have costs similar to euclidean distances, and
@@ -307,23 +303,26 @@ Best First Search will attempt to follow these and end up at a city with the
 only paths available having extremely high cost. Both of my methods seemed to
 avoid this issue. An interesting difference between the two algorithms
 is that the first took a few hours of execution over the course of many runs to 
-arrive at its minimum, and yet the second used to find the same result within a
-few seconds until I implemented some optimisations to improve the result on
-other graphs. Now the second algorithm rarely produces anything lower than
-double the minimum it previously found.
+arrive at its minimum, and yet the second tends to find the same result almost
+instantly. This could be because the ant colony searcher is able to find
+improved tours that require more than one mutation of the current best, whereas
+the gradient descent can only move to immediately beneficial tours. This means
+it will always choose to use the paths of zero length if possible, where a
+slightly more costly path would open up the opportunity to choose many shorter
+ones later.
 
 The last (and largest) graph causes both algorithms to struggle. The first
-takes noticeably longer to test each graph, and so can get through a smaller
-sample in a given amount of time. However, it will still generate a better
-result than a straight Best First Search or the second algorithm with its first
-tests. The second algorithm produces its best result in a much longer time than
-other graphs too. The difference in speed of finding minimal results is due in
-part to the increased amount of time needed to perform operations on the larger
-graph, and also because there are simply many more possible tours so the
-probability of an arbitrary tour being minimal is substantially lower. Looking
-at the visualisations, the first method navigates its way cleanly through the
-regular grid-like clusters on one side of the graph, whereas the second mostly
-traverses them in no real pattern.
+takes noticeably longer to test each tour, and so will get through a smaller
+sample in a given amount of time than with a smaller graph. However, it will
+still generate a better result than a direct Best First Search or the second
+algorithm with its first few tests. The second algorithm produces its best
+result in a much longer time than other graphs took. The difference in speed of
+finding minimal results is due in part to the increased amount of time needed
+to perform operations on the larger tours, and also because there are simply
+many more possible tours so the probability of an arbitrary tour being minimal
+is substantially lower. Looking at the visualisations, the first method
+navigates its way cleanly through the regular grid-like clusters on one side of
+the graph, whereas the second mostly traverses them in no real pattern.
 
 When comparing simply by result score it is apparent that Algorithm A currently
 can produce better results than Algorithm B. However, there isn't really much
