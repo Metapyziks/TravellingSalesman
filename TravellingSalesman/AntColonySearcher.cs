@@ -111,7 +111,7 @@ namespace TravellingSalesman
                     return true;
             };
 
-            Action<T, int> compare = (ant, cost) => {
+            Func<T, int, bool> compare = (ant, cost) => {
                 lock (this) {
                     if (best == null || cost < bestLength) {
                         best = new Route(graph, ant.History, graph.Count);
@@ -121,11 +121,14 @@ namespace TravellingSalesman
 
                         if (BetterRouteFound != null)
                             BetterRouteFound(this, new BetterRouteFoundEventArgs(best));
+                        return true;
                     }
+                    return false;
                 }
             };
 
             Thread mainThread = Thread.CurrentThread;
+            Random rand = new Random();
 
             ThreadStart loop = () => {
                 var ants = new T[AntCount / Threads];
@@ -143,16 +146,24 @@ namespace TravellingSalesman
 
                             int cost = ant.Step(phms, tours);
                             if (cost > -1) {
+                                var win = compare(ant, cost);
                                 lock (phms) {
-                                    ant.FortifyLastRoute(phms, minimum, tours + 1);
+                                    ant.FortifyLastRoute(phms, minimum, tours + 1, win);
                                 }
-                                compare(ant, cost);
                             }
                         }
 
                         if (Thread.CurrentThread == mainThread && printProgress) {
                             Console.CursorLeft = 10;
                             Console.Write("{0}/{1} - {2}    ", step + 1, StepCount, bestLength);
+                        }
+
+                        if (step > (StepCount >> 1) && rand.Next(StepCount) < 16) {
+                            for (int i = 0; i < graph.Count; ++i) {
+                                for (int j = i + 1; j < graph.Count; ++j) {
+                                    phms[i, j] = phms[j, i] = phms[j, i] * rand.NextDouble();
+                                }
+                            }
                         }
                     }
 

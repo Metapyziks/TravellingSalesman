@@ -1,3 +1,8 @@
+// #define ALGA
+#if !ALGA
+#define ALGB
+#endif
+
 using System;
 using System.Globalization;
 using System.Collections.Generic;
@@ -83,8 +88,11 @@ namespace Searcher
             Console.WriteLine( "Loading file {0}", filePath );
             Graph graph = Graph.FromFile( filePath );
             Console.WriteLine( "Graph loaded: {0} has {1} vertices", graph.Name, graph.Count );
-            
+#if ALGA
             String savePath = outDir + DSC + "TourfileA" + DSC + "tour" + graph.Name + ".txt";
+#else
+            String savePath = outDir + DSC + "TourfileB" + DSC + "tour" + graph.Name + ".txt";
+#endif
             String datePath = Path.GetDirectoryName( savePath ) + Path.DirectorySeparatorChar;
             datePath += Path.GetFileNameWithoutExtension( savePath ) + ".";
             datePath += DateTime.Now.ToShortDateString().Replace( '/', '-' );
@@ -114,19 +122,19 @@ namespace Searcher
             bool record = false;
             bool dayRecord = false;
 
-            /*
-            var searcher = new AntColonySearcher<Ant> {
-                Threads = 4,
-                AntCount = 24 * graph.Count,
-                StepCount = 65536
-            };
-            */
-
+#if ALGA
             var searcher = new StochasticHillClimbSearcher(new ReversingSearcher()) {
                 Attempts = graph.Count < 17 ? 256 : graph.Count < 50 ? 65536 : graph.Count < 100
                     ? 32768 : graph.Count < 500 ? 8192 : 4096,
                 Threads = 4
             };
+#else
+            var searcher = new AntColonySearcher<Ant> {
+                Threads = 4,
+                AntCount = 48 * graph.Count,
+                StepCount = 65536
+            };
+#endif
 
             searcher.BetterRouteFound += ( sender, e ) =>
             {

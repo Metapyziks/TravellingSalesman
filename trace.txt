@@ -1,6 +1,9 @@
-Tue 01/15/13  11:51:42 PM
+Fri 01/18/13  01:19:13 AM
 
 directory: .git ...
+error: no sets of tour-files are present
+
+directory: LatexGraphGen ...
 error: no sets of tour-files are present
 
 directory: Searcher ...
@@ -33,9 +36,9 @@ SAfile017.txt: good (length of tour is 1444)
 SAfile021.txt: good (length of tour is 2549)
 SAfile026.txt: good (length of tour is 1473)
 SAfile042.txt: good (length of tour is 1188)
-SAfile048.txt: good (length of tour is 12505)
-SAfile058.txt: good (length of tour is 26027)
-SAfile175.txt: good (length of tour is 21774)
+SAfile048.txt: good (length of tour is 12177)
+SAfile058.txt: good (length of tour is 25395)
+SAfile175.txt: good (length of tour is 21605)
 SAfile180.txt: good (length of tour is 1950)
 SAfile535.txt: good (length of tour is 49061)
 

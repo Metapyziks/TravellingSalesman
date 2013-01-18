@@ -42,7 +42,8 @@ namespace LaTeXGraphGen
                     routeB = Route.FromFile(graph, routeBPath);
                 int diff = routeB.Length - routeA.Length;
                 table.AddRow(graph.Name, routeA.Length.ToString(), routeB.Length.ToString(),
-                    diff.ToString() + " (" + (100d * diff / routeA.Length).ToString("F2") + "\\%)");
+                    diff.ToString() + (diff != 0
+                    ? " (" + (100d * diff / routeA.Length).ToString("F2") + "\\%)" : ""));
             }
             table.AddHLine();
 
@@ -53,7 +54,7 @@ namespace LaTeXGraphGen
             }
 
             Console.WriteLine("Compiling...");
-            Process.Start("pdflatex", "gvnj58report.tex");
+            Process.Start("xelatex", "gvnj58report.tex");
         }
     }
 }

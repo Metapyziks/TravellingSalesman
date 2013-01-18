@@ -77,16 +77,18 @@ namespace TravellingSalesman
             return -1;
         }
 
-        public void FortifyLastRoute(double[,] pheromones, int min, int max)
+        public void FortifyLastRoute(double[,] pheromones, int min, int max, bool best = false)
         {
             double add = (double) Graph.Count / (_cost - min);
             int last = 0;
             for (int i = Graph.Count - 1; i >= 0; --i) {
-                pheromones[History[i], History[last]] += add;
-
-                if (pheromones[History[i], History[last]] > max)
+                if (best) {
                     pheromones[History[i], History[last]] = max;
-
+                } else {
+                    pheromones[History[i], History[last]] += add;
+                    if (pheromones[History[i], History[last]] > max)
+                        pheromones[History[i], History[last]] = max;
+                }
                 pheromones[History[last], History[i]] = pheromones[History[i], History[last]];
 
                 last = i;
@@ -100,8 +102,8 @@ namespace TravellingSalesman
 
         protected virtual double FindScore(int vertex, double[,] pheromones, int tours, double phWeight)
         {
-            return phWeight * (pheromones[CurrentVertex, vertex] + 1d) +
-                (1d - phWeight ) * (tours + 1d) / (Graph[CurrentVertex, vertex]);
+            return phWeight * pheromones[CurrentVertex, vertex] +
+                (1d - phWeight) * (tours + 1d) / (Graph[CurrentVertex, vertex]);
         }
 
         protected virtual int ChooseNext(double[,] pheromones, int tours)
